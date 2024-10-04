@@ -1,22 +1,33 @@
-import sys
+import calendar
+import ctypes
 import json
+import uuid
+import numpy as np
+import pyqtgraph as pg
+import sys
+
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
-    QCursor, QFont, QFontDatabase, QGradient,
-    QIcon, QImage, QKeySequence, QLinearGradient,
-    QPainter, QPalette, QPixmap, QRadialGradient,
-    QTransform)
-from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QComboBox, QFrame,
-    QGroupBox, QLabel, QLineEdit, QMainWindow,
-    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
-    QSpacerItem, QSpinBox, QTabWidget, QVBoxLayout,
-    QWidget)
+from PySide6.QtCore import (
+    QCoreApplication, QDate, QDateTime, QLocale, QMetaObject, 
+    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt
+)
+
+from PySide6.QtGui import (
+    QAction, QBrush, QColor, QConicalGradient, QCursor, 
+    QFont, QFontDatabase, QGradient, QIcon, QImage, 
+    QKeySequence, QLinearGradient, QPainter, QPalette, 
+    QPixmap, QRadialGradient, QTransform
+)
+
+from PySide6.QtWidgets import (
+    QAbstractScrollArea, QApplication, QComboBox, QFrame, 
+    QGroupBox, QLabel, QLineEdit, QMainWindow, QProgressBar, 
+    QPushButton, QScrollArea, QSizePolicy, QSpacerItem, 
+    QSpinBox, QTabWidget, QVBoxLayout, QWidget
+)
 
 FOLDER_DIR = Path("data")
 JSON_FILE = FOLDER_DIR / "game_data.json"
@@ -130,7 +141,7 @@ class Ui_MainWindow(object):
         self.comboBox_weapon.addItem("")
         self.comboBox_weapon.addItem("")
         self.comboBox_weapon.setObjectName(u"comboBox_weapon")
-        self.comboBox_weapon.setGeometry(QRect(340, 120, 171, 31))
+        self.comboBox_weapon.setGeometry(QRect(340, 120, 181, 31))
         self.comboBox_weapon.setFont(font2)
         self.comboBox_module = QComboBox(self.tab_2)
         self.comboBox_module.addItem("")
@@ -141,7 +152,7 @@ class Ui_MainWindow(object):
         self.comboBox_module.addItem("")
         self.comboBox_module.addItem("")
         self.comboBox_module.setObjectName(u"comboBox_module")
-        self.comboBox_module.setGeometry(QRect(340, 150, 171, 31))
+        self.comboBox_module.setGeometry(QRect(340, 150, 181, 31))
         self.comboBox_module.setFont(font2)
         self.comboBox_ability = QComboBox(self.tab_2)
         self.comboBox_ability.addItem("")
@@ -152,7 +163,7 @@ class Ui_MainWindow(object):
         self.comboBox_ability.addItem("")
         self.comboBox_ability.addItem("")
         self.comboBox_ability.setObjectName(u"comboBox_ability")
-        self.comboBox_ability.setGeometry(QRect(340, 90, 171, 31))
+        self.comboBox_ability.setGeometry(QRect(340, 90, 181, 31))
         self.comboBox_ability.setFont(font2)
         self.label_10 = QLabel(self.tab_2)
         self.label_10.setObjectName(u"label_10")
@@ -224,7 +235,7 @@ class Ui_MainWindow(object):
         self.tab_3.setObjectName(u"tab_3")
         self.scrollArea_2 = QScrollArea(self.tab_3)
         self.scrollArea_2.setObjectName(u"scrollArea_2")
-        self.scrollArea_2.setGeometry(QRect(0, 0, 791, 521))
+        self.scrollArea_2.setGeometry(QRect(0, 0, 796, 525))
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_3 = QWidget()
         self.scrollAreaWidgetContents_3.setObjectName(u"scrollAreaWidgetContents_3")
@@ -245,7 +256,7 @@ class Ui_MainWindow(object):
         self.lifetime_win_ration_lable_general.setFont(font3)
         self.progressBar_win_ratio_general = QProgressBar(self.general_statistics)
         self.progressBar_win_ratio_general.setObjectName(u"progressBar_win_ratio_general")
-        self.progressBar_win_ratio_general.setGeometry(QRect(480, 20, 261, 31))
+        self.progressBar_win_ratio_general.setGeometry(QRect(480, 34, 261, 2))
         self.progressBar_win_ratio_general.setStyleSheet(u"")
         self.progressBar_win_ratio_general.setValue(0)
         self.progressBar_win_ratio_general.setTextVisible(False)
@@ -279,27 +290,27 @@ class Ui_MainWindow(object):
         self.matches_lable_general.setFont(font3)
         self.most_used_ability_lable_general = QLabel(self.general_statistics)
         self.most_used_ability_lable_general.setObjectName(u"most_used_ability_lable_general")
-        self.most_used_ability_lable_general.setGeometry(QRect(10, 200, 400, 31))
+        self.most_used_ability_lable_general.setGeometry(QRect(10, 200, 420, 31))
         self.most_used_ability_lable_general.setFont(font3)
         self.most_used_weapon_lable_general = QLabel(self.general_statistics)
         self.most_used_weapon_lable_general.setObjectName(u"most_used_weapon_lable_general")
-        self.most_used_weapon_lable_general.setGeometry(QRect(10, 230, 400, 31))
+        self.most_used_weapon_lable_general.setGeometry(QRect(10, 230, 420, 31))
         self.most_used_weapon_lable_general.setFont(font3)
         self.most_used_module_lable_general = QLabel(self.general_statistics)
         self.most_used_module_lable_general.setObjectName(u"most_used_module_lable_general")
-        self.most_used_module_lable_general.setGeometry(QRect(10, 260, 400, 31))
+        self.most_used_module_lable_general.setGeometry(QRect(10, 260, 420, 31))
         self.most_used_module_lable_general.setFont(font3)
         self.best_map_lable_general = QLabel(self.general_statistics)
         self.best_map_lable_general.setObjectName(u"best_map_lable_general")
-        self.best_map_lable_general.setGeometry(QRect(430, 260, 300, 31))
+        self.best_map_lable_general.setGeometry(QRect(440, 260, 300, 31))
         self.best_map_lable_general.setFont(font3)
         self.best_weapon_lable_general = QLabel(self.general_statistics)
         self.best_weapon_lable_general.setObjectName(u"best_weapon_lable_general")
-        self.best_weapon_lable_general.setGeometry(QRect(430, 230, 300, 31))
+        self.best_weapon_lable_general.setGeometry(QRect(440, 230, 300, 31))
         self.best_weapon_lable_general.setFont(font3)
         self.best_mode_lable_general = QLabel(self.general_statistics)
         self.best_mode_lable_general.setObjectName(u"best_mode_lable_general")
-        self.best_mode_lable_general.setGeometry(QRect(430, 200, 300, 31))
+        self.best_mode_lable_general.setGeometry(QRect(440, 200, 300, 31))
         self.best_mode_lable_general.setFont(font3)
 
         self.verticalLayout_2.addWidget(self.general_statistics)
@@ -310,7 +321,7 @@ class Ui_MainWindow(object):
         self.tab_4.setObjectName(u"tab_4")
         self.scrollArea = QScrollArea(self.tab_4)
         self.scrollArea.setObjectName(u"scrollArea")
-        self.scrollArea.setGeometry(QRect(8, 7, 781, 511))
+        self.scrollArea.setGeometry(QRect(0, 0, 796, 525))
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -341,6 +352,112 @@ class Ui_MainWindow(object):
         font7.setFamilies([u"Moon"])
         font7.setPointSize(10)
         self.tabWidget.setFont(font7)
+        
+        self.tab_5 = QWidget()
+        self.tab_5.setObjectName(u"tab_5")
+        
+        # Scroll area for the graph
+        self.scrollArea_3 = QScrollArea(self.tab_5)
+        self.scrollArea_3.setObjectName(u"scrollArea_3")
+        self.scrollArea_3.setGeometry(QRect(0, 0, 796, 525))
+        self.scrollArea_3.setWidgetResizable(True)
+        self.scrollArea_3.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Frame for the scroll area
+        self.filler = QFrame()
+        self.filler.setObjectName(u"filler")
+        self.filler.setGeometry(QRect(0, 0, 775, 1200))
+        self.filler.setMinimumSize(796, 1200)
+        self.scrollArea_3.setWidget(self.filler)
+        
+        # Selection box for the modes
+        self.selection_box = QFrame(self.filler)
+        self.selection_box.setObjectName(u"selection_box")
+        self.selection_box.setGeometry(QRect(5, 470, 775, 60))
+        self.selection_box.setFont(font2)
+        
+        # Button for all modes
+        self.button1 = QPushButton(self.selection_box)
+        self.button1.setObjectName(u"button1")
+        self.button1.setGeometry(QRect(0, 10, 100, 40))
+        self.button1.setFont(font2)
+        self.button1.setStyleSheet(u"color: purple;")
+        
+        # Button for Backup
+        self.button2 = QPushButton(self.selection_box)
+        self.button2.setObjectName(u"button2")
+        self.button2.setGeometry(QRect(105, 10, 100, 40))
+        self.button2.setFont(font2)
+        
+        # Button for Q-Ball
+        self.button3 = QPushButton(self.selection_box)
+        self.button3.setObjectName(u"button3")
+        self.button3.setGeometry(QRect(210, 10, 100, 40))
+        self.button3.setFont(font2)
+        
+        # Button for Free For All
+        self.button4 = QPushButton(self.selection_box)
+        self.button4.setObjectName(u"button4")
+        self.button4.setGeometry(QRect(315, 10, 100, 40))
+        self.button4.setFont(font2)
+        
+        # Button for Ranked
+        self.button5 = QPushButton(self.selection_box)
+        self.button5.setObjectName(u"button5")
+        self.button5.setGeometry(QRect(420, 10, 100, 40))
+        self.button5.setFont(font2)
+        
+        # Combo box for the stats
+        self.statistic_box = QComboBox(self.selection_box)
+        self.statistic_box.setObjectName(u"statistic_box")
+        self.statistic_box.setGeometry(QRect(525, 10, 115, 40))
+        self.statistic_box.setFont(font2)
+        self.statistic_box.addItem("")  #K/D
+        self.statistic_box.addItem("")  #Kills
+        self.statistic_box.addItem("")  #Deaths
+        self.statistic_box.addItem("")  #Matches
+        self.statistic_box.addItem("")  #Wins
+        self.statistic_box.addItem("")  #Losses
+        self.statistic_box.addItem("")  #Win%
+        
+        # Combo box for the time frame
+        self.time_box = QComboBox(self.selection_box)
+        self.time_box.setObjectName(u"time_box")
+        self.time_box.setGeometry(QRect(645, 10, 130, 40))
+        self.time_box.setFont(font2)
+        self.time_box.addItem("")  # All time
+        self.time_box.addItem("")  # Last Month
+        self.time_box.addItem("")  # Last Week
+        
+        # The graph
+        self.graph = pg.PlotWidget(self.filler)
+        self.graph.setObjectName(u"graph")
+        self.graph.setGeometry(QRect(5, 5, 775, 460))
+        self.graph.setMouseEnabled(x=False, y=False)
+        self.graph.setBackground('#2D2D2D')
+        self.graph.showGrid(x=True, y=True)
+        
+        # Dummy image for fun
+        self.dummy = QLabel(self.filler)
+        self.dummy.setObjectName(u"dummy")
+        self.dummy.setGeometry(QRect(0, 660, 800, 540))
+        self.dummy.setPixmap(QPixmap(u"assets/Blette.png"))
+        self.dummy.setScaledContents(True)
+        
+        font8 = QFont()
+        font8.setPointSize(36)
+        font8.setBold(True)
+        
+        # Text on the Image
+        self.dummy_text = QLabel(self.filler)
+        self.dummy_text.setObjectName(u"dummy_text")
+        self.dummy_text.setGeometry(QRect(200, 680, 400, 50))
+        self.dummy_text.setFont(font8)
+        self.dummy_text.setAlignment(Qt.AlignCenter)
+        self.dummy_text.setWordWrap(True)
+        self.dummy_text.setStyleSheet(u"color: Orange;")
+        
+        self.tabWidget.addTab(self.tab_5, "")
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -354,7 +471,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
         self.actiong.setText(QCoreApplication.translate("MainWindow", u"g", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.1", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.2", None))
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Created by: Puppetino", None))
         self.pushButton_new_match.setText(QCoreApplication.translate("MainWindow", u"New Game", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), QCoreApplication.translate("MainWindow", u"Home", None))
@@ -366,53 +483,53 @@ class Ui_MainWindow(object):
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"Weapon:", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"Module:", None))
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"Ability:", None))
-        self.comboBox_weapon.setItemText(0, QCoreApplication.translate("MainWindow", u"None", None))
-        self.comboBox_weapon.setItemText(1, QCoreApplication.translate("MainWindow", u"Sparks", None))
-        self.comboBox_weapon.setItemText(2, QCoreApplication.translate("MainWindow", u"Storm", None))
-        self.comboBox_weapon.setItemText(3, QCoreApplication.translate("MainWindow", u"Orion", None))
-        self.comboBox_weapon.setItemText(4, QCoreApplication.translate("MainWindow", u"Pulser", None))
-        self.comboBox_weapon.setItemText(5, QCoreApplication.translate("MainWindow", u"Vortex-5", None))
-        self.comboBox_weapon.setItemText(6, QCoreApplication.translate("MainWindow", u"Nova", None))
+        self.comboBox_weapon.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.comboBox_weapon.setItemText(1, QCoreApplication.translate("MainWindow", u" Sparks", None))
+        self.comboBox_weapon.setItemText(2, QCoreApplication.translate("MainWindow", u" Storm", None))
+        self.comboBox_weapon.setItemText(3, QCoreApplication.translate("MainWindow", u" Orion", None))
+        self.comboBox_weapon.setItemText(4, QCoreApplication.translate("MainWindow", u" Pulser", None))
+        self.comboBox_weapon.setItemText(5, QCoreApplication.translate("MainWindow", u" Vortex-5", None))
+        self.comboBox_weapon.setItemText(6, QCoreApplication.translate("MainWindow", u" Nova", None))
 
-        self.comboBox_module.setItemText(0, QCoreApplication.translate("MainWindow", u"None", None))
-        self.comboBox_module.setItemText(1, QCoreApplication.translate("MainWindow", u"Regeneration", None))
-        self.comboBox_module.setItemText(2, QCoreApplication.translate("MainWindow", u"Mobility", None))
-        self.comboBox_module.setItemText(3, QCoreApplication.translate("MainWindow", u"Vampirism", None))
-        self.comboBox_module.setItemText(4, QCoreApplication.translate("MainWindow", u"Berserker", None))
-        self.comboBox_module.setItemText(5, QCoreApplication.translate("MainWindow", u"Heal Booster", None))
-        self.comboBox_module.setItemText(6, QCoreApplication.translate("MainWindow", u"Synchronisation", None))
+        self.comboBox_module.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.comboBox_module.setItemText(1, QCoreApplication.translate("MainWindow", u" Regeneration", None))
+        self.comboBox_module.setItemText(2, QCoreApplication.translate("MainWindow", u" Mobility", None))
+        self.comboBox_module.setItemText(3, QCoreApplication.translate("MainWindow", u" Vampirism", None))
+        self.comboBox_module.setItemText(4, QCoreApplication.translate("MainWindow", u" Berserker", None))
+        self.comboBox_module.setItemText(5, QCoreApplication.translate("MainWindow", u" Heal Booster", None))
+        self.comboBox_module.setItemText(6, QCoreApplication.translate("MainWindow", u" Synchronisation", None))
 
-        self.comboBox_ability.setItemText(0, QCoreApplication.translate("MainWindow", u"None", None))
-        self.comboBox_ability.setItemText(1, QCoreApplication.translate("MainWindow", u"Blast", None))
-        self.comboBox_ability.setItemText(2, QCoreApplication.translate("MainWindow", u"Shield Healing", None))
-        self.comboBox_ability.setItemText(3, QCoreApplication.translate("MainWindow", u"Teleportation", None))
-        self.comboBox_ability.setItemText(4, QCoreApplication.translate("MainWindow", u"Invisibility", None))
-        self.comboBox_ability.setItemText(5, QCoreApplication.translate("MainWindow", u"Flash Bang", None))
-        self.comboBox_ability.setItemText(6, QCoreApplication.translate("MainWindow", u"Black Hole", None))
+        self.comboBox_ability.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.comboBox_ability.setItemText(1, QCoreApplication.translate("MainWindow", u" Blast", None))
+        self.comboBox_ability.setItemText(2, QCoreApplication.translate("MainWindow", u" Shield Healing", None))
+        self.comboBox_ability.setItemText(3, QCoreApplication.translate("MainWindow", u" Teleportation", None))
+        self.comboBox_ability.setItemText(4, QCoreApplication.translate("MainWindow", u" Invisibility", None))
+        self.comboBox_ability.setItemText(5, QCoreApplication.translate("MainWindow", u" Flash Bang", None))
+        self.comboBox_ability.setItemText(6, QCoreApplication.translate("MainWindow", u" Black Hole", None))
 
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Other", None))
         self.label_11.setText(QCoreApplication.translate("MainWindow", u"Map:", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"Win/Loss:", None))
-        self.comboBox_map.setItemText(0, QCoreApplication.translate("MainWindow", u"None", None))
-        self.comboBox_map.setItemText(1, QCoreApplication.translate("MainWindow", u"Trinity Island", None))
-        self.comboBox_map.setItemText(2, QCoreApplication.translate("MainWindow", u"Shroomworld", None))
-        self.comboBox_map.setItemText(3, QCoreApplication.translate("MainWindow", u"Lost Complex", None))
-        self.comboBox_map.setItemText(4, QCoreApplication.translate("MainWindow", u"Twilight Path", None))
-        self.comboBox_map.setItemText(5, QCoreApplication.translate("MainWindow", u"Singularity", None))
+        self.comboBox_map.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.comboBox_map.setItemText(1, QCoreApplication.translate("MainWindow", u" Trinity Island", None))
+        self.comboBox_map.setItemText(2, QCoreApplication.translate("MainWindow", u" Shroomworld", None))
+        self.comboBox_map.setItemText(3, QCoreApplication.translate("MainWindow", u" Lost Complex", None))
+        self.comboBox_map.setItemText(4, QCoreApplication.translate("MainWindow", u" Twilight Path", None))
+        self.comboBox_map.setItemText(5, QCoreApplication.translate("MainWindow", u" Singularity", None))
 
-        self.comboBox_win_loss.setItemText(0, QCoreApplication.translate("MainWindow", u"None", None))
-        self.comboBox_win_loss.setItemText(1, QCoreApplication.translate("MainWindow", u"Win", None))
-        self.comboBox_win_loss.setItemText(2, QCoreApplication.translate("MainWindow", u"loss", None))
-        self.comboBox_win_loss.setItemText(3, QCoreApplication.translate("MainWindow", u"Draw", None))
+        self.comboBox_win_loss.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.comboBox_win_loss.setItemText(1, QCoreApplication.translate("MainWindow", u" Win", None))
+        self.comboBox_win_loss.setItemText(2, QCoreApplication.translate("MainWindow", u" loss", None))
+        self.comboBox_win_loss.setItemText(3, QCoreApplication.translate("MainWindow", u" Draw", None))
 
         self.label_13.setText(QCoreApplication.translate("MainWindow", u"Mode:", None))
-        self.comboBox_mode.setItemText(0, QCoreApplication.translate("MainWindow", u"None", None))
-        self.comboBox_mode.setItemText(1, QCoreApplication.translate("MainWindow", u"Backup", None))
-        self.comboBox_mode.setItemText(2, QCoreApplication.translate("MainWindow", u"Q-Ball", None))
-        self.comboBox_mode.setItemText(3, QCoreApplication.translate("MainWindow", u"Free for All", None))
-        self.comboBox_mode.setItemText(4, QCoreApplication.translate("MainWindow", u"Ranked", None))
-        self.comboBox_mode.setItemText(5, QCoreApplication.translate("MainWindow", u"Co-op vs. AIs", None))
-        self.comboBox_mode.setItemText(6, QCoreApplication.translate("MainWindow", u"Custom", None))
+        self.comboBox_mode.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.comboBox_mode.setItemText(1, QCoreApplication.translate("MainWindow", u" Backup", None))
+        self.comboBox_mode.setItemText(2, QCoreApplication.translate("MainWindow", u" Q-Ball", None))
+        self.comboBox_mode.setItemText(3, QCoreApplication.translate("MainWindow", u" Free for All", None))
+        self.comboBox_mode.setItemText(4, QCoreApplication.translate("MainWindow", u" Ranked", None))
+        self.comboBox_mode.setItemText(5, QCoreApplication.translate("MainWindow", u" Co-op vs. AIs", None))
+        self.comboBox_mode.setItemText(6, QCoreApplication.translate("MainWindow", u" Custom", None))
 
         self.pushButton_reset.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
         self.pushButton_save_game.setText(QCoreApplication.translate("MainWindow", u"Save Game", None))
@@ -437,7 +554,28 @@ class Ui_MainWindow(object):
         self.best_mode_lable_general.setText(QCoreApplication.translate("MainWindow", u"None", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Statistics", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"History", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), QCoreApplication.translate("MainWindow", u"Analytics", None))
         self.label_14.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
+        
+        self.button1.setText(QCoreApplication.translate("MainWindow", u"All Modes", None))
+        self.button2.setText(QCoreApplication.translate("MainWindow", u"Backup", None))
+        self.button3.setText(QCoreApplication.translate("MainWindow", u"Q-Ball", None))
+        self.button4.setText(QCoreApplication.translate("MainWindow", u"FFA", None))
+        self.button5.setText(QCoreApplication.translate("MainWindow", u"Ranked", None))
+        
+        self.statistic_box.setItemText(0, QCoreApplication.translate("MainWindow", u" K/D", None))
+        self.statistic_box.setItemText(1, QCoreApplication.translate("MainWindow", u" Kills", None))
+        self.statistic_box.setItemText(2, QCoreApplication.translate("MainWindow", u" Deaths", None))
+        self.statistic_box.setItemText(3, QCoreApplication.translate("MainWindow", u" Matches", None))
+        self.statistic_box.setItemText(4, QCoreApplication.translate("MainWindow", u" Wins", None))
+        self.statistic_box.setItemText(5, QCoreApplication.translate("MainWindow", u" Losses", None))
+        self.statistic_box.setItemText(6, QCoreApplication.translate("MainWindow", u" Win%", None))
+        
+        self.time_box.setItemText(0, QCoreApplication.translate("MainWindow", u" Last Year", None))
+        self.time_box.setItemText(1, QCoreApplication.translate("MainWindow", u" Last Month", None))
+        self.time_box.setItemText(2, QCoreApplication.translate("MainWindow", u" Last Week", None))
+        
+        self.dummy_text.setText(QCoreApplication.translate("MainWindow", u"SOON\u2122", None))
     # retranslateUi
 
 class Ui_MainWindow2(object):
@@ -785,7 +923,7 @@ class GameDataEditor(QMainWindow, Ui_MainWindow2):
         self.close()  # Close the editor after saving
 
 # Define the MainWindow class
-class MainWindow(QMainWindow, Ui_MainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
@@ -793,13 +931,189 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Connect the tab change signal to the method
         self.ui.tabWidget.currentChanged.connect(self.on_tab_change)
+        
         # Connect the button click event to the save_game_data method
         self.ui.pushButton_save_game.clicked.connect(self.save_game_data)
-        # Connect the button click event to the reset_fields method
         self.ui.pushButton_reset.clicked.connect(self.reset_fields)
         
-    def on_tab_change(self, index):
+        # Connect the buttons on the Analytics tab
+        self.ui.button1.clicked.connect(lambda: self.button_clicked(1))  # All game modes
+        self.ui.button2.clicked.connect(lambda: self.button_clicked(2))  # Backup
+        self.ui.button3.clicked.connect(lambda: self.button_clicked(3))  # Q-Ball
+        self.ui.button4.clicked.connect(lambda: self.button_clicked(4))  # Free For All
+        self.ui.button5.clicked.connect(lambda: self.button_clicked(5))  # Ranked
         
+        # Connect the ComboBox for the statistic on the Analytics tab
+        self.ui.statistic_box.currentIndexChanged.connect(self.statistic_changed)
+        
+        # Connect the ComboBox for the time filter on the Analytics tab
+        self.ui.time_box.currentIndexChanged.connect(self.time_filter_changed)
+        
+        # Initialize default selections
+        self.selected_statistic = 0     # Default statistic (Kills)
+        self.selected_time_filter = 0   # Default time filter (Last Year)
+        self.selected_button = 1        # Default button (All Game Modes)
+        
+        # Load graph for the first time
+        self.load_graph()
+
+    def load_json_data(self):
+        with open(JSON_FILE, "r") as json_file:
+            return json.load(json_file)
+
+    def filter_data_by_mode(self, games):
+        if self.selected_button == 1:   # Button 1 -> All modes
+            return games
+        mode_mapping = {
+            2: "Backup",                # Button 2 -> Backup
+            3: "Q-Ball",                # Button 3 -> Q-Ball
+            4: "Free for All",          # Button 4 -> Free For All
+            5: "Ranked"                 # Button 5 -> Ranked
+        }
+        return {
+            game_id: data for game_id, data in games.items()
+            if data['Mode'].strip().lower() == mode_mapping[self.selected_button].lower()
+        }
+
+    def get_statistic_values(self, filtered_data, x_labels):
+        y_values = [0] * len(x_labels)  # Initialize Y-values as zeros for each X-axis label
+
+        # Iterate through the filtered data and calculate stats per X-axis label
+        for game_id, game_data in filtered_data.items():
+            game_datetime = datetime.strptime(game_data['DateTime'], '%Y-%m-%d %H:%M')
+            game_label = game_datetime.strftime('%b') if self.selected_time_filter == 0 else game_datetime.strftime('%d.%m')
+
+            if game_label in x_labels:
+                index = x_labels.index(game_label)
+                
+                if self.selected_statistic == 0:  # K/D
+                    total_kills = 0
+                    total_deaths = 0
+                    for game_id, game_data in filtered_data.items():
+                        game_datetime = datetime.strptime(game_data['DateTime'], '%Y-%m-%d %H:%M')
+                        game_label = game_datetime.strftime('%b') if self.selected_time_filter == 0 else game_datetime.strftime('%d.%m')
+                        if game_label == x_labels[index]:
+                            total_kills += game_data['Kills']
+                            total_deaths += game_data['Deaths']
+                    if total_deaths > 0:
+                        y_values[index] = total_kills / total_deaths
+                    else:
+                        y_values[index] = 0
+                elif self.selected_statistic == 1:  # Kills
+                    y_values[index] += game_data['Kills']
+                elif self.selected_statistic == 2:  # Deaths
+                    y_values[index] += game_data['Deaths']
+                elif self.selected_statistic == 3:  # Matches
+                    y_values[index] += 1
+                elif self.selected_statistic == 4:  # Wins
+                    y_values[index] += 1 if game_data['Win/Loss'].strip().lower() == 'win' else 0
+                elif self.selected_statistic == 5:  # Losses
+                    y_values[index] += 1 if game_data['Win/Loss'].strip().lower() == 'loss' else 0
+                elif self.selected_statistic == 6:  # Win%
+                    games_in_label = [
+                        game for game in filtered_data.values()
+                        if datetime.strptime(game['DateTime'], '%Y-%m-%d %H:%M').strftime('%b' if self.selected_time_filter == 0 else '%d.%m') == game_label
+                    ]
+
+                    if games_in_label:  # If there are games in this period
+                        wins_in_label = sum(1 for game in games_in_label if game['Win/Loss'].strip().lower() == 'win')
+                        total_games_in_label = len(games_in_label)
+                        win_percentage = (wins_in_label / total_games_in_label) * 100
+                        y_values[index] = win_percentage  # Set the Win% for this specific period (label)
+
+        return y_values
+
+    def button_clicked(self, index):
+        # Reset all buttons to white
+        for i in range(1, 6):
+            getattr(self.ui, f"button{i}").setStyleSheet("color: white")
+        
+        # Set the clicked button to purple
+        getattr(self.ui, f"button{index}").setStyleSheet("color: purple")
+        
+        # Store the selected mode (button clicked)
+        self.selected_button = index
+        
+        # Re-load graph with updated mode
+        self.load_graph()
+
+    def statistic_changed(self, statistic):
+        self.selected_statistic = statistic
+        
+        # Re-load graph with updated statistic
+        self.load_graph()
+
+    def time_filter_changed(self, time_filter):
+        self.selected_time_filter = time_filter
+        
+        # Re-load graph with updated time filter
+        self.load_graph()
+
+    def filter_data_by_time(self, games):
+        now = datetime.now()
+
+        if self.selected_time_filter == 0:      # Last Year / 12 months
+            cutoff = now - timedelta(days=365)
+            x_values = [(now - timedelta(days=365 - i*30)).strftime('%b') for i in range(12)]
+        elif self.selected_time_filter == 1:    # Last Month / 30 days
+            cutoff = now - timedelta(days=30)
+            x_values = [(now - timedelta(days=i)).strftime('%d.%m') for i in range(30)]
+        elif self.selected_time_filter == 2:    # Last Week / 7 days
+            cutoff = now - timedelta(days=7)
+            x_values = [(now - timedelta(days=i)).strftime('%d.%m') for i in range(7)]
+
+        # Filter games by comparing the DateTime field to the cutoff
+        filtered_games = {}
+        for game_id, game_data in games.items():
+            game_datetime = datetime.strptime(game_data['DateTime'], '%Y-%m-%d %H:%M')
+            if game_datetime > cutoff:
+                filtered_games[game_id] = game_data
+
+        return filtered_games, x_values
+
+    def load_graph(self):
+        # Clear the existing graph before plotting the new one
+        self.ui.graph.clear()
+
+        # Load and filter data from the JSON file
+        data = self.load_json_data()
+
+        # Combine the filters to get the final dataset
+        filtered_data = {}
+        x_labels = []  # X-axis labels that we'll display
+        for season, games in data.items():
+            season_games, season_x_values = self.filter_data_by_time(games)
+            season_games = self.filter_data_by_mode(season_games)
+            filtered_data.update(season_games)
+            x_labels = season_x_values  # Use the last calculated x_values for graph
+
+        # Get the y values for the graph based on the filtered data
+        y_values = self.get_statistic_values(filtered_data, x_labels)
+
+        # Reverse both the X-axis labels and the Y-values to match the inverted X-axis
+        x_labels.reverse()
+        y_values.reverse()
+
+        # Plot the data on the graph (fill gaps where no data is available)
+        pen = pg.mkPen('purple')
+        x_indices = list(range(len(x_labels)))
+        self.ui.graph.plot(x_indices, y_values, pen=pen, symbol='x')
+
+        # Set the X-axis with custom labels (e.g., months or dates)
+        x_axis = self.ui.graph.getAxis('bottom')
+        x_axis.setTicks([[(i, label) for i, label in enumerate(x_labels)]])
+
+        # Set fixed limits and range for the graph
+        y_min, y_max = min(y_values), max(y_values)
+        self.ui.graph.setLimits(xMin=0, xMax=len(x_labels) - 1, yMin=0, yMax=y_max)
+
+        # Disable mouse dragging or zooming on the graph
+        self.ui.graph.setMouseEnabled(x=False, y=False)
+
+        # Set the fixed range for the view
+        self.ui.graph.setRange(xRange=(0, len(x_labels) - 1), yRange=(0, y_max))
+    
+    def on_tab_change(self, index):        
         if index == 3:
             # Call load_saved_games only if the game_data.json file exists
             if BASE_DIR.exists():
@@ -809,7 +1123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Call load_general_stats only if the game_data.json file exists
             if BASE_DIR.exists():
                 self.load_general_stats()
-
+            
     def load_general_stats(self):
         # First, calculate all general stats
         self.calculate_general_stats()
@@ -825,6 +1139,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ui.losses_lable_general.setText(f"Losses: {self.total_losses}")
         self.ui.lifetime_win_ration_lable_general.setText(f"Lifetime W/L: {self.win_ratio}%")
         self.ui.progressBar_win_ratio_general.setValue(self.win_ratio)
+        self.ui.progressBar_win_ratio_general.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: black;} QProgressBar::chunk { background-color: purple;}")
         self.ui.most_used_ability_lable_general.setText(f"Most Used Ability: {self.most_used_ability}")
         self.ui.most_used_weapon_lable_general.setText(f"Most Used Weapon: {self.most_used_weapon}")
         self.ui.most_used_module_lable_general.setText(f"Most Used Module: {self.most_used_module}")
@@ -913,20 +1228,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         lifetime_win_ratio_label = QLabel(f"W/L Ratio: {win_ratio}%", season_group_box)
         lifetime_win_ratio_label.setGeometry(QRect(240, 20, 230, 31))
+        
+        avg_kills_label = QLabel(f"Avg. Kills: {round(total_kills / max(1, total_games), 2)}", season_group_box)
+        avg_kills_label.setGeometry(QRect(10, 50, 261, 31))
 
         progressBar_win_ratio = QProgressBar(season_group_box)
-        progressBar_win_ratio.setGeometry(QRect(480, 20, 261, 31))
+        progressBar_win_ratio.setGeometry(QRect(480, 34, 261, 2))
         progressBar_win_ratio.setValue(win_ratio)
         progressBar_win_ratio.setTextVisible(False)
+        progressBar_win_ratio.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: black;} QProgressBar::chunk { background-color: purple;}")
 
         kills_label = QLabel(f"Kills: {total_kills}", season_group_box)
-        kills_label.setGeometry(QRect(10, 50, 200, 31))
+        kills_label.setGeometry(QRect(10, 80, 200, 31))
 
         deaths_label = QLabel(f"Deaths: {total_deaths}", season_group_box)
-        deaths_label.setGeometry(QRect(10, 80, 200, 31))
+        deaths_label.setGeometry(QRect(10, 110, 200, 31))
 
         assists_label = QLabel(f"Assists: {total_assists}", season_group_box)
-        assists_label.setGeometry(QRect(10, 110, 200, 31))
+        assists_label.setGeometry(QRect(10, 140, 200, 31))
 
         wins_label = QLabel(f"Wins: {total_wins}", season_group_box)
         wins_label.setGeometry(QRect(240, 50, 200, 31))
@@ -939,23 +1258,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Add most used ability, weapon, and module
         most_used_ability_label = QLabel(f"Most Used Ability: {most_used_ability}", season_group_box)
-        most_used_ability_label.setGeometry(QRect(10, 200, 400, 31))
+        most_used_ability_label.setGeometry(QRect(10, 200, 420, 31))
 
         most_used_weapon_label = QLabel(f"Most Used Weapon: {most_used_weapon}", season_group_box)
-        most_used_weapon_label.setGeometry(QRect(10, 230, 400, 31))
+        most_used_weapon_label.setGeometry(QRect(10, 230, 420, 31))
 
         most_used_module_label = QLabel(f"Most Used Module: {most_used_module}", season_group_box)
-        most_used_module_label.setGeometry(QRect(10, 260, 400, 31))
+        most_used_module_label.setGeometry(QRect(10, 260, 420, 31))
 
         # Add best map, mode, and weapon labels
         best_map_label = QLabel(f"Best Map: {best_map}", season_group_box)
-        best_map_label.setGeometry(QRect(430, 260, 300, 31))
+        best_map_label.setGeometry(QRect(440, 260, 300, 31))
 
         best_mode_label = QLabel(f"Best Mode: {best_mode}", season_group_box)
-        best_mode_label.setGeometry(QRect(430, 200, 300, 31))
+        best_mode_label.setGeometry(QRect(440, 200, 300, 31))
 
         best_weapon_label = QLabel(f"Best Weapon: {best_weapon}", season_group_box)
-        best_weapon_label.setGeometry(QRect(430, 230, 300, 31))
+        best_weapon_label.setGeometry(QRect(440, 230, 300, 31))
 
         return season_group_box  # Ensure the group box is returned
 
@@ -1143,7 +1462,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Save the updated data back to the JSON file
         with open(BASE_DIR, "w") as jsonfile:
             json.dump(data, jsonfile, indent=4)
-
+            
     def load_saved_games(self):
         # Clear existing widgets in the scroll area
         for i in reversed(range(self.ui.verticalLayout.count() - 1)):
@@ -1300,11 +1619,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             with open(BASE_DIR, "w") as jsonfile:
                 json.dump(data, jsonfile, indent=4)
 
-            # Reload the saved games
             self.load_saved_games()  # Reload the history tab to update the view
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
+    icon = QIcon("assets/app.ico")
+    app.setWindowIcon(icon)
+    app_id = str(uuid.uuid4())
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
     window.show()
     sys.exit(app.exec())
