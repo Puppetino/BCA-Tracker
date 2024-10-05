@@ -858,7 +858,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Statistics", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"History", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), QCoreApplication.translate("MainWindow", u"Analytics", None))
-        self.label_14.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker INDEV-VERSION", None))
+        self.label_14.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
         
         self.button1.setText(QCoreApplication.translate("MainWindow", u"All Modes", None))
         self.button2.setText(QCoreApplication.translate("MainWindow", u"Backup", None))
