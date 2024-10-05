@@ -1,8 +1,6 @@
-import calendar
 import ctypes
 import json
 import uuid
-import numpy as np
 import pyqtgraph as pg
 import sys
 
@@ -10,27 +8,15 @@ from collections import Counter
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from PySide6.QtCore import (
-    QCoreApplication, QDate, QDateTime, QLocale, QMetaObject, 
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt
-)
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
 
-from PySide6.QtGui import (
-    QAction, QBrush, QColor, QConicalGradient, QCursor, 
-    QFont, QFontDatabase, QGradient, QIcon, QImage, 
-    QKeySequence, QLinearGradient, QPainter, QPalette, 
-    QPixmap, QRadialGradient, QTransform
-)
-
-from PySide6.QtWidgets import (
-    QAbstractScrollArea, QApplication, QComboBox, QFrame, 
-    QGroupBox, QLabel, QLineEdit, QMainWindow, QProgressBar, 
-    QPushButton, QScrollArea, QSizePolicy, QSpacerItem, 
-    QSpinBox, QTabWidget, QVBoxLayout, QWidget
-)
+from py_toggle import PyToggle
 
 FOLDER_DIR = Path("data")
 JSON_FILE = FOLDER_DIR / "game_data.json"
+SETTINGS_FILE = FOLDER_DIR / "settings.json"
 
 if not FOLDER_DIR.exists():
     FOLDER_DIR.mkdir(parents=True)
@@ -38,10 +24,21 @@ if not FOLDER_DIR.exists():
 if not JSON_FILE.exists():
     with open(JSON_FILE, "w") as jsonfile:
         json.dump({"Y1S1":{}}, jsonfile)
+        
+if not SETTINGS_FILE.exists():
+    with open(SETTINGS_FILE, "w") as jsonfile:
+        json.dump(
+            {
+                "Settings":{
+                    "Setting_1": True
+                }
+            }
+            , jsonfile)
 
 # Location of your data
 BASE_DIR = JSON_FILE
 
+# Ui Elements for Main Window
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
@@ -53,6 +50,66 @@ class Ui_MainWindow(object):
         self.actiong.setObjectName(u"actiong")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
+        
+        self.settings_button = QPushButton(self.centralwidget)
+        self.settings_button.setObjectName(u"settings_button")
+        self.settings_button.setGeometry(QRect(750, 10, 40, 40))
+        self.settings_button.setIconSize(QSize(40, 40))
+        self.settings_button.setIcon(QIcon("assets/sliders2.svg"))
+        self.settings_button.setStyleSheet("background-color: transparent;" "border: none;")
+        self.settings_button.clicked.connect(lambda: {self.settings_window.setVisible(True), self.settings_window.raise_()})
+        
+        self.settings_window = QWidget(self.centralwidget)
+        self.settings_window.setObjectName(u"settings_window")
+        self.settings_window.setGeometry(QRect(25, 25, 750, 550))
+        self.settings_window.setStyleSheet("background-color: #2d2d2d; border: 2px solid purple; border-radius: 10px;")
+        self.settings_window.setVisible(False)
+        
+        self.settings_window_label = QLabel(self.settings_window)
+        self.settings_window_label.setObjectName(u"settings_window_label")
+        self.settings_window_label.setGeometry(QRect(20, 10, 730, 30))
+        font = QFont()
+        font.setFamilies([u"Moon"])
+        font.setPointSize(22)
+        self.settings_window_label.setFont(font)
+        self.settings_window_label.setStyleSheet("Background-color: transparent; border: none; color: White;")
+        
+        self.settings_window_close_button = QPushButton(self.settings_window)
+        self.settings_window_close_button.setObjectName(u"settings_window_close_button")
+        self.settings_window_close_button.setGeometry(QRect(710, 10, 30, 30))
+        self.settings_window_close_button.setIconSize(QSize(30, 30))
+        self.settings_window_close_button.setIcon(QIcon("assets/x-lg.svg"))
+        self.settings_window_close_button.setStyleSheet("background-color: transparent;" "border: none;")
+        self.settings_window_close_button.clicked.connect(lambda: {self.settings_window.setVisible(False), self.settings_window.raise_()})
+        
+        self.settings_window_box = QWidget(self.settings_window)
+        self.settings_window_box.setObjectName(u"settings_window_box")
+        self.settings_window_box.setGeometry(QRect(10, 50, 500, 450))
+        self.settings_window_box.setStyleSheet("background-color: transparent; border: none;")
+        
+        self.settings_window_label_2 = QLabel(self.settings_window)
+        self.settings_window_label_2.setObjectName(u"settings_window_label_2")
+        self.settings_window_label_2.setGeometry(QRect(10, 50, 300, 30))
+        font1 = QFont()
+        font1.setFamilies([u"Moon"])
+        font1.setPointSize(16)
+        self.settings_window_label_2.setFont(font1)
+        self.settings_window_label_2.setStyleSheet("Background-color: transparent; border: none; color: White;")
+        
+        self.toggle_1 = PyToggle()
+        self.settings_window_layout = QVBoxLayout(self.settings_window_box)
+        self.settings_window_layout.setAlignment(Qt.AlignTop)
+        
+        # Add a horizontal layout to the vertical layout
+        horizontal_layout = QHBoxLayout()
+        self.settings_window_layout.addLayout(horizontal_layout)
+
+        # Add the label to the horizontal layout
+        horizontal_layout.addWidget(self.settings_window_label_2)
+
+        # Add the toggle to the horizontal layout
+        horizontal_layout.addWidget(self.toggle_1)
+        
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setGeometry(QRect(0, 50, 801, 551))
@@ -60,7 +117,7 @@ class Ui_MainWindow(object):
         self.tab_1.setObjectName(u"tab_1")
         self.label = QLabel(self.tab_1)
         self.label.setObjectName(u"label")
-        self.label.setGeometry(QRect(70, 10, 750, 61))
+        self.label.setGeometry(QRect(50, 10, 700, 61))
         self.credit_label = QLabel(self.tab_1)
         self.credit_label.setObjectName(u"credit_label")
         self.credit_label.setGeometry(QRect(308, 470, 750, 61))
@@ -366,8 +423,7 @@ class Ui_MainWindow(object):
         # Frame for the scroll area
         self.filler = QFrame()
         self.filler.setObjectName(u"filler")
-        self.filler.setGeometry(QRect(0, 0, 775, 1200))
-        self.filler.setMinimumSize(796, 1200)
+        self.filler.setGeometry(QRect(0, 0, 775, 525))
         self.scrollArea_3.setWidget(self.filler)
         
         # Selection box for the modes
@@ -437,27 +493,274 @@ class Ui_MainWindow(object):
         self.graph.setBackground('#2D2D2D')
         self.graph.showGrid(x=True, y=True)
         
-        # Dummy image for fun
-        self.dummy = QLabel(self.filler)
-        self.dummy.setObjectName(u"dummy")
-        self.dummy.setGeometry(QRect(0, 660, 800, 540))
-        self.dummy.setPixmap(QPixmap(u"assets/Blette.png"))
-        self.dummy.setScaledContents(True)
+        # Design 1
+        self.design_1 = QFrame(self.filler)
+        self.design_1.setObjectName(u"design_1")
+        self.design_1.setGeometry(QRect(5, 550, 775, 600))
+        self.design_1.setStyleSheet(u"background-color: transparent; border: 2px solid purple; border-radius: 10px;")
+        self.design_1.setFrameShape(QFrame.Shape.StyledPanel)
+        self.design_1.setFrameShadow(QFrame.Shadow.Raised)
+        self.design_1.hide()
         
-        font8 = QFont()
-        font8.setPointSize(36)
-        font8.setBold(True)
+        # Design 2
+        self.design_2 = QFrame(self.filler)
+        self.design_2.setObjectName(u"design_2")
+        self.design_2.setGeometry(QRect(5, 550, 775, 515))
+        self.design_2.setFrameShape(QFrame.Shape.StyledPanel)
+        self.design_2.setFrameShadow(QFrame.Shadow.Raised)
         
-        # Text on the Image
-        self.dummy_text = QLabel(self.filler)
-        self.dummy_text.setObjectName(u"dummy_text")
-        self.dummy_text.setGeometry(QRect(200, 680, 400, 50))
-        self.dummy_text.setFont(font8)
-        self.dummy_text.setAlignment(Qt.AlignCenter)
-        self.dummy_text.setWordWrap(True)
-        self.dummy_text.setStyleSheet(u"color: Orange;")
+        # Design 2 - ComboBoxes for Weapons
+        self.design_2_ComboBox_Weapon = QComboBox(self.design_2)
+        self.design_2_ComboBox_Weapon.setObjectName(u"design_2_ComboBox_Weapon")
+        self.design_2_ComboBox_Weapon.setGeometry(QRect(30, 10, 170, 40))
+        self.design_2_ComboBox_Weapon.setFont(font7)
+        self.design_2_ComboBox_Weapon.addItem("")
+        self.design_2_ComboBox_Weapon.addItem("")
+        self.design_2_ComboBox_Weapon.addItem("")
+        self.design_2_ComboBox_Weapon.addItem("")
+        self.design_2_ComboBox_Weapon.addItem("")
+        self.design_2_ComboBox_Weapon.addItem("")
+        self.design_2_ComboBox_Weapon.addItem("")
+        
+        # Design 2 - ComboBoxes for Modules
+        self.design_2_ComboBox_Module = QComboBox(self.design_2)
+        self.design_2_ComboBox_Module.setObjectName(u"design_2_ComboBox_Module")
+        self.design_2_ComboBox_Module.setGeometry(QRect(210, 10, 170, 40))
+        self.design_2_ComboBox_Module.setFont(font7)
+        self.design_2_ComboBox_Module.addItem("")
+        self.design_2_ComboBox_Module.addItem("")
+        self.design_2_ComboBox_Module.addItem("")
+        self.design_2_ComboBox_Module.addItem("")
+        self.design_2_ComboBox_Module.addItem("")
+        self.design_2_ComboBox_Module.addItem("")
+        self.design_2_ComboBox_Module.addItem("")
+        
+        # Design 2 - ComboBoxes for Abilities
+        self.design_2_ComboBox_Ability = QComboBox(self.design_2)
+        self.design_2_ComboBox_Ability.setObjectName(u"design_2_ComboBox_Ability")
+        self.design_2_ComboBox_Ability.setGeometry(QRect(390, 10, 170, 40))
+        self.design_2_ComboBox_Ability.setFont(font7)
+        self.design_2_ComboBox_Ability.addItem("")
+        self.design_2_ComboBox_Ability.addItem("")
+        self.design_2_ComboBox_Ability.addItem("")
+        self.design_2_ComboBox_Ability.addItem("")
+        self.design_2_ComboBox_Ability.addItem("")
+        self.design_2_ComboBox_Ability.addItem("")
+        self.design_2_ComboBox_Ability.addItem("")
+        
+        # Design 2 - ComboBoxes for Maps
+        self.design_2_ComboBox_Map = QComboBox(self.design_2)
+        self.design_2_ComboBox_Map.setObjectName(u"design_2_ComboBox_Map")
+        self.design_2_ComboBox_Map.setGeometry(QRect(570, 10, 170, 40))
+        self.design_2_ComboBox_Map.setFont(font7)
+        self.design_2_ComboBox_Map.addItem("")
+        self.design_2_ComboBox_Map.addItem("")
+        self.design_2_ComboBox_Map.addItem("")
+        self.design_2_ComboBox_Map.addItem("")
+        self.design_2_ComboBox_Map.addItem("")
+        self.design_2_ComboBox_Map.addItem("")
+        
+        # Dummy Image
+        # self.dummy_image = QLabel(self.design_2)
+        # self.dummy_image.setObjectName(u"dummy_image")
+        # self.dummy_image.setGeometry(QRect(30, 220, 710, 290))
+        # self.dummy_image.setPixmap(QPixmap(u"assets/Blette.png"))
+        # self.dummy_image.setScaledContents(True)
+        
+        # Design 2 - Tabs
+        self.design_2_tab = QTabWidget(self.design_2)
+        self.design_2_tab.setObjectName(u"design_2_tab")
+        self.design_2_tab.setGeometry(QRect(30, 60, 710, 150))
+        self.design_2_tab.setFont(font7)
+        self.design_2_tab.addTab(QWidget(), "Weapons")
+        self.design_2_tab.addTab(QWidget(), "Modules")
+        self.design_2_tab.addTab(QWidget(), "Abilities")
+        self.design_2_tab.addTab(QWidget(), "Maps")
+        
+        # Design 2 - Tab 1 - Weapon
+        self.design_2_tab_1_text = QLabel(self.design_2_tab.widget(0))
+        self.design_2_tab_1_text.setObjectName(u"design_2_tab_1_text")
+        self.design_2_tab_1_text.setGeometry(QRect(10, 10, 400, 30))
+        self.design_2_tab_1_text.setFont(font6)
+        
+        # Design 2 - Tab 1 - K/D
+        self.design_2_tab_1_kd = QLabel(self.design_2_tab.widget(0))
+        self.design_2_tab_1_kd.setObjectName(u"design_2_tab_1_kd")
+        self.design_2_tab_1_kd.setGeometry(QRect(10, 50, 300, 30))
+        self.design_2_tab_1_kd.setFont(font3)
+        
+        # Design 2 - Tab 1 - K/D Progress
+        self.design_2_tab_1_kd_progress = QProgressBar(self.design_2_tab.widget(0))
+        self.design_2_tab_1_kd_progress.setObjectName(u"design_2_tab_1_kd_progress")
+        self.design_2_tab_1_kd_progress.setGeometry(QRect(350, 55, 265, 20))
+        self.design_2_tab_1_kd_progress.setFont(font3)
+        self.design_2_tab_1_kd_progress.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: darkgray;} QProgressBar::chunk { background-color: purple; border-radius: 10px; }")
+        self.design_2_tab_1_kd_progress.setFormat("K/D: 0/0")
+        
+        # Design 2 - Tab 1 - Kills
+        self.design_2_tab_1_kills_label = QLabel("Kills", self.design_2_tab.widget(0))
+        self.design_2_tab_1_kills_label.setObjectName(u"design_2_tab_1_kills_label")
+        self.design_2_tab_1_kills_label.setGeometry(QRect(280, 50, 300, 30))
+        self.design_2_tab_1_kills_label.setFont(font2)
+        
+        # Design 2 - Tab 1 - Deaths
+        self.design_2_tab_1_deaths_label = QLabel("Deaths", self.design_2_tab.widget(0))
+        self.design_2_tab_1_deaths_label.setObjectName(u"design_2_tab_1_deaths_label")
+        self.design_2_tab_1_deaths_label.setGeometry(QRect(630, 50, 300, 30))
+        self.design_2_tab_1_deaths_label.setFont(font2)
+        
+        # Design 2 - Tab 1 - Usage
+        self.design_2_tab_1_usage = QLabel(self.design_2_tab.widget(0))
+        self.design_2_tab_1_usage.setObjectName(u"design_2_tab_1_usage")
+        self.design_2_tab_1_usage.setGeometry(QRect(10, 90, 300, 30))
+        self.design_2_tab_1_usage.setFont(font3)
+        
+        # Design 2 - Tab 1 - Winrate Progress
+        self.design_2_tab_1_usage_progress = QProgressBar(self.design_2_tab.widget(0))
+        self.design_2_tab_1_usage_progress.setObjectName(u"design_2_tab_1_usage_progress")
+        self.design_2_tab_1_usage_progress.setGeometry(QRect(350, 95, 265, 20))
+        self.design_2_tab_1_usage_progress.setFont(font3)
+        self.design_2_tab_1_usage_progress.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: darkgray;} QProgressBar::chunk { background-color: purple; border-radius: 10px;}")
+        self.design_2_tab_1_usage_progress.setFormat("Winrate: 0%")
+        
+        # Design 2 - Tab 1 - Wins
+        self.design_2_tab_1_wins_label = QLabel("Wins", self.design_2_tab.widget(0))
+        self.design_2_tab_1_wins_label.setObjectName(u"design_2_tab_1_wins_label")
+        self.design_2_tab_1_wins_label.setGeometry(QRect(280, 90, 300, 30))
+        self.design_2_tab_1_wins_label.setFont(font2)
+        
+        # Design 2 - Tab 1 - Losses
+        self.design_2_tab_1_losses_label = QLabel("Losses", self.design_2_tab.widget(0))
+        self.design_2_tab_1_losses_label.setObjectName(u"design_2_tab_1_losses_label")
+        self.design_2_tab_1_losses_label.setGeometry(QRect(630, 90, 300, 30))
+        self.design_2_tab_1_losses_label.setFont(font2)
+        
+        # Design 2 - Tab 2 - Module
+        self.design_2_tab_2_text = QLabel(self.design_2_tab.widget(1))
+        self.design_2_tab_2_text.setObjectName(u"design_2_tab_2_text")
+        self.design_2_tab_2_text.setGeometry(QRect(10, 10, 400, 30))
+        self.design_2_tab_2_text.setFont(font6)
+        
+        # Design 2 - Tab 2 - Usage
+        self.design_2_tab_2_usage = QLabel(self.design_2_tab.widget(1))
+        self.design_2_tab_2_usage.setObjectName(u"design_2_tab_2_usage")
+        self.design_2_tab_2_usage.setGeometry(QRect(10, 90, 300, 30))
+        self.design_2_tab_2_usage.setFont(font3)
+        
+        # Design 2 - Tab 2 - Usage Progress
+        self.design_2_tab_2_usage_progress = QProgressBar(self.design_2_tab.widget(1))
+        self.design_2_tab_2_usage_progress.setObjectName(u"design_2_tab_2_usage_progress")
+        self.design_2_tab_2_usage_progress.setGeometry(QRect(350, 95, 265, 20))
+        self.design_2_tab_2_usage_progress.setFont(font3)
+        self.design_2_tab_2_usage_progress.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: darkgray;} QProgressBar::chunk { background-color: purple; border-radius: 10px;}")
+        self.design_2_tab_2_usage_progress.setFormat("Winrate: 0%")
+        
+        # Design 2 - Tab 2 - Wins
+        self.design_2_tab_2_wins_label = QLabel("Wins", self.design_2_tab.widget(1))
+        self.design_2_tab_2_wins_label.setObjectName(u"design_2_tab_2_wins_label")
+        self.design_2_tab_2_wins_label.setGeometry(QRect(280, 90, 300, 30))
+        self.design_2_tab_2_wins_label.setFont(font2)
+        
+        # Design 2 - Tab 2 - Losses
+        self.design_2_tab_2_losses_label = QLabel("Losses", self.design_2_tab.widget(1))
+        self.design_2_tab_2_losses_label.setObjectName(u"design_2_tab_2_losses_label")
+        self.design_2_tab_2_losses_label.setGeometry(QRect(630, 90, 300, 30))
+        self.design_2_tab_2_losses_label.setFont(font2)
+        
+        # Design 2 - Tab 3 - Module
+        self.design_2_tab_3_text = QLabel(self.design_2_tab.widget(2))
+        self.design_2_tab_3_text.setObjectName(u"design_2_tab_3_text")
+        self.design_2_tab_3_text.setGeometry(QRect(10, 10, 400, 30))
+        self.design_2_tab_3_text.setFont(font6)
+        
+        # Design 2 - Tab 3 - Usage
+        self.design_2_tab_3_usage = QLabel(self.design_2_tab.widget(2))
+        self.design_2_tab_3_usage.setObjectName(u"design_2_tab_3_usage")
+        self.design_2_tab_3_usage.setGeometry(QRect(10, 90, 300, 30))
+        self.design_2_tab_3_usage.setFont(font3)
+        
+        # Design 2 - Tab 3 - Usage Progress
+        self.design_2_tab_3_usage_progress = QProgressBar(self.design_2_tab.widget(2))
+        self.design_2_tab_3_usage_progress.setObjectName(u"design_2_tab_3_usage_progress")
+        self.design_2_tab_3_usage_progress.setGeometry(QRect(350, 95, 265, 20))
+        self.design_2_tab_3_usage_progress.setFont(font3)
+        self.design_2_tab_3_usage_progress.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: darkgray;} QProgressBar::chunk { background-color: purple; border-radius: 10px;}")
+        self.design_2_tab_3_usage_progress.setFormat("Winrate: 0%")
+        
+        # Design 2 - Tab 3 - Wins
+        self.design_2_tab_3_wins_label = QLabel("Wins", self.design_2_tab.widget(2))
+        self.design_2_tab_3_wins_label.setObjectName(u"design_2_tab_3_wins_label")
+        self.design_2_tab_3_wins_label.setGeometry(QRect(280, 90, 300, 30))
+        self.design_2_tab_3_wins_label.setFont(font2)
+        
+        # Design 2 - Tab 3 - Losses
+        self.design_2_tab_3_losses_label = QLabel("Losses", self.design_2_tab.widget(2))
+        self.design_2_tab_3_losses_label.setObjectName(u"design_2_tab_3_losses_label")
+        self.design_2_tab_3_losses_label.setGeometry(QRect(630, 90, 300, 30))
+        self.design_2_tab_3_losses_label.setFont(font2)
+        
+        # Design 2 - Tab 4 - Map
+        self.design_2_tab_4_text = QLabel(self.design_2_tab.widget(3))
+        self.design_2_tab_4_text.setObjectName(u"design_2_tab_4_text")
+        self.design_2_tab_4_text.setGeometry(QRect(10, 10, 400, 30))
+        self.design_2_tab_4_text.setFont(font6)
+        
+        # Design 2 - Tab 4 - K/D
+        self.design_2_tab_4_kd = QLabel(self.design_2_tab.widget(3))
+        self.design_2_tab_4_kd.setObjectName(u"design_2_tab_4_kd")
+        self.design_2_tab_4_kd.setGeometry(QRect(10, 50, 300, 30))
+        self.design_2_tab_4_kd.setFont(font3)
+        
+        # Design 2 - Tab 4 - K/D Progress
+        self.design_2_tab_4_kd_progress = QProgressBar(self.design_2_tab.widget(3))
+        self.design_2_tab_4_kd_progress.setObjectName(u"design_2_tab_4_kd_progress")
+        self.design_2_tab_4_kd_progress.setGeometry(QRect(350, 55, 265, 20))
+        self.design_2_tab_4_kd_progress.setFont(font3)
+        self.design_2_tab_4_kd_progress.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: darkgray;} QProgressBar::chunk { background-color: purple; border-radius: 10px;}")
+        self.design_2_tab_4_kd_progress.setFormat("Winrate: 0%")
+        
+        # Design 2 - Tab 4 - Kills
+        self.design_2_tab_4_kills_label = QLabel("Kills", self.design_2_tab.widget(3))
+        self.design_2_tab_4_kills_label.setObjectName(u"design_2_tab_4_kills_label")
+        self.design_2_tab_4_kills_label.setGeometry(QRect(280, 50, 300, 30))
+        self.design_2_tab_4_kills_label.setFont(font2)
+        
+        # Design 2 - Tab 4 - Deaths
+        self.design_2_tab_4_deaths_label = QLabel("Deaths", self.design_2_tab.widget(3))
+        self.design_2_tab_4_deaths_label.setObjectName(u"design_2_tab_4_deaths_label")
+        self.design_2_tab_4_deaths_label.setGeometry(QRect(630, 50, 300, 30))
+        self.design_2_tab_4_deaths_label.setFont(font2)
+        
+        # Design 2 - Tab 4 - Usage
+        self.design_2_tab_4_usage = QLabel(self.design_2_tab.widget(3))
+        self.design_2_tab_4_usage.setObjectName(u"design_2_tab_4_usage")
+        self.design_2_tab_4_usage.setGeometry(QRect(10, 90, 300, 30))
+        self.design_2_tab_4_usage.setFont(font3)
+        
+        # Design 2 - Tab 4 - Usage Progress
+        self.design_2_tab_4_usage_progress = QProgressBar(self.design_2_tab.widget(3))
+        self.design_2_tab_4_usage_progress.setObjectName(u"design_2_tab_4_usage_progress")
+        self.design_2_tab_4_usage_progress.setGeometry(QRect(350, 95, 265, 20))
+        self.design_2_tab_4_usage_progress.setFont(font3)
+        self.design_2_tab_4_usage_progress.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: darkgray;} QProgressBar::chunk { background-color: purple; border-radius: 10px;}")
+        self.design_2_tab_4_usage_progress.setFormat("Winrate: 0%")
+        
+        # Design 2 - Tab 4 - Wins
+        self.design_2_tab_4_wins_label = QLabel("Wins", self.design_2_tab.widget(3))
+        self.design_2_tab_4_wins_label.setObjectName(u"design_2_tab_4_wins_label")
+        self.design_2_tab_4_wins_label.setGeometry(QRect(280, 90, 300, 30))
+        self.design_2_tab_4_wins_label.setFont(font2)
+        
+        # Design 2 - Tab 4 - Losses
+        self.design_2_tab_4_losses_label = QLabel("Losses", self.design_2_tab.widget(3))
+        self.design_2_tab_4_losses_label.setObjectName(u"design_2_tab_4_losses_label")
+        self.design_2_tab_4_losses_label.setGeometry(QRect(630, 90, 300, 30))
+        self.design_2_tab_4_losses_label.setFont(font2)
+        
+        self.design_2.hide()
         
         self.tabWidget.addTab(self.tab_5, "")
+        self.settings_button.raise_()
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -471,7 +774,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
         self.actiong.setText(QCoreApplication.translate("MainWindow", u"g", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.2", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.2.1", None))
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Created by: Puppetino", None))
         self.pushButton_new_match.setText(QCoreApplication.translate("MainWindow", u"New Game", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), QCoreApplication.translate("MainWindow", u"Home", None))
@@ -555,7 +858,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Statistics", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"History", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), QCoreApplication.translate("MainWindow", u"Analytics", None))
-        self.label_14.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
+        self.label_14.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker INDEV-VERSION", None))
         
         self.button1.setText(QCoreApplication.translate("MainWindow", u"All Modes", None))
         self.button2.setText(QCoreApplication.translate("MainWindow", u"Backup", None))
@@ -575,9 +878,61 @@ class Ui_MainWindow(object):
         self.time_box.setItemText(1, QCoreApplication.translate("MainWindow", u" Last Month", None))
         self.time_box.setItemText(2, QCoreApplication.translate("MainWindow", u" Last Week", None))
         
-        self.dummy_text.setText(QCoreApplication.translate("MainWindow", u"SOON\u2122", None))
+        # self.dummy_text.setText(QCoreApplication.translate("MainWindow", u"SOON\u2122", None))
+        
+        self.settings_window_label.setText(QCoreApplication.translate("MainWindow", u"Settings", None))
+        self.settings_window_label_2.setText(QCoreApplication.translate("MainWindow", u"Design 2 for the Analytics Tab", None))
+        
+        self.design_2_ComboBox_Weapon.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.design_2_ComboBox_Weapon.setItemText(1, QCoreApplication.translate("MainWindow", u" Sparks", None))
+        self.design_2_ComboBox_Weapon.setItemText(2, QCoreApplication.translate("MainWindow", u" Storm", None))
+        self.design_2_ComboBox_Weapon.setItemText(3, QCoreApplication.translate("MainWindow", u" Orion", None))
+        self.design_2_ComboBox_Weapon.setItemText(4, QCoreApplication.translate("MainWindow", u" Pulser", None))
+        self.design_2_ComboBox_Weapon.setItemText(5, QCoreApplication.translate("MainWindow", u" Vortex-5", None))
+        self.design_2_ComboBox_Weapon.setItemText(6, QCoreApplication.translate("MainWindow", u" Nova", None))
+        
+        self.design_2_ComboBox_Ability.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.design_2_ComboBox_Ability.setItemText(1, QCoreApplication.translate("MainWindow", u" Blast", None))
+        self.design_2_ComboBox_Ability.setItemText(2, QCoreApplication.translate("MainWindow", u" Shield Healing", None))
+        self.design_2_ComboBox_Ability.setItemText(3, QCoreApplication.translate("MainWindow", u" Teleportation", None))
+        self.design_2_ComboBox_Ability.setItemText(4, QCoreApplication.translate("MainWindow", u" Invisibility", None))
+        self.design_2_ComboBox_Ability.setItemText(5, QCoreApplication.translate("MainWindow", u" Flash Bang", None))
+        self.design_2_ComboBox_Ability.setItemText(6, QCoreApplication.translate("MainWindow", u" Black Hole", None))
+        
+        self.design_2_ComboBox_Module.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.design_2_ComboBox_Module.setItemText(1, QCoreApplication.translate("MainWindow", u" Regeneration", None))
+        self.design_2_ComboBox_Module.setItemText(2, QCoreApplication.translate("MainWindow", u" Mobility", None))
+        self.design_2_ComboBox_Module.setItemText(3, QCoreApplication.translate("MainWindow", u" Vampirism", None))
+        self.design_2_ComboBox_Module.setItemText(4, QCoreApplication.translate("MainWindow", u" Berserker", None))
+        self.design_2_ComboBox_Module.setItemText(5, QCoreApplication.translate("MainWindow", u" Heal Booster", None))
+        self.design_2_ComboBox_Module.setItemText(6, QCoreApplication.translate("MainWindow", u" Synchronisation", None))
+        
+        self.design_2_ComboBox_Map.setItemText(0, QCoreApplication.translate("MainWindow", u" None", None))
+        self.design_2_ComboBox_Map.setItemText(1, QCoreApplication.translate("MainWindow", u" Trinity Island", None))
+        self.design_2_ComboBox_Map.setItemText(2, QCoreApplication.translate("MainWindow", u" Shroomworld", None))
+        self.design_2_ComboBox_Map.setItemText(3, QCoreApplication.translate("MainWindow", u" Lost Complex", None))
+        self.design_2_ComboBox_Map.setItemText(4, QCoreApplication.translate("MainWindow", u" Twilight Path", None))
+        self.design_2_ComboBox_Map.setItemText(5, QCoreApplication.translate("MainWindow", u" Singularity", None))
+        
+        self.design_2_tab_1_text.setText(QCoreApplication.translate("MainWindow", u"NONE", None))
+        self.design_2_tab_1_kd.setText(QCoreApplication.translate("MainWindow", u"K/D: NONE", None))
+        self.design_2_tab_1_usage.setText(QCoreApplication.translate("MainWindow", u"Usage: NONE", None))
+        
+        self.design_2_tab_2_text.setText(QCoreApplication.translate("MainWindow", u"NONE", None))
+        self.design_2_tab_2_usage.setText(QCoreApplication.translate("MainWindow", u"Usage: NONE", None))
+        
+        self.design_2_tab_3_text.setText(QCoreApplication.translate("MainWindow", u"NONE", None))
+        self.design_2_tab_3_usage.setText(QCoreApplication.translate("MainWindow", u"Usage: NONE", None))
+        
+        self.design_2_tab_4_text.setText(QCoreApplication.translate("MainWindow", u"NONE", None))
+        self.design_2_tab_4_kd.setText(QCoreApplication.translate("MainWindow", u"K/D: NONE", None))
+        self.design_2_tab_4_usage.setText(QCoreApplication.translate("MainWindow", u"Usage: NONE", None))
+        
+        
+
     # retranslateUi
 
+# Ui Elements for the Game Data Editor
 class Ui_MainWindow2(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
@@ -815,6 +1170,7 @@ class Ui_MainWindow2(object):
         self.date_lineEdit.setText(QCoreApplication.translate("MainWindow", u"", None))
     # retranslateUi
 
+# The Window for editing game data
 class GameDataEditor(QMainWindow, Ui_MainWindow2):
     def __init__(self, parent=None, game_name=None, season=None, main_window=None, get_next_game_number=None, rename_games=None, load_saved_games=None):
         super(GameDataEditor, self).__init__(parent)
@@ -922,12 +1278,21 @@ class GameDataEditor(QMainWindow, Ui_MainWindow2):
         self.load_saved_games()
         self.close()  # Close the editor after saving
 
-# Define the MainWindow class
+# The Main Window
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        
+        # Load settings from the settings file and store them in self.settings
+        self.settings = self.load_settings()
+        
+        # Apply settings to the toggle button
+        self.ui.toggle_1.setChecked(self.settings['Settings']['Setting_1'])  # Set toggle based on the saved state
+        
+        # Connect the toggle button to toggle the setting
+        self.ui.toggle_1.clicked.connect(self.toggle_setting)
 
         # Connect the tab change signal to the method
         self.ui.tabWidget.currentChanged.connect(self.on_tab_change)
@@ -949,6 +1314,11 @@ class MainWindow(QMainWindow):
         # Connect the ComboBox for the time filter on the Analytics tab
         self.ui.time_box.currentIndexChanged.connect(self.time_filter_changed)
         
+        self.ui.design_2_ComboBox_Weapon.currentIndexChanged.connect(self.design_2_ComboBox_Weapon_changed)
+        self.ui.design_2_ComboBox_Ability.currentIndexChanged.connect(self.design_2_ComboBox_Ability_changed)
+        self.ui.design_2_ComboBox_Module.currentIndexChanged.connect(self.design_2_ComboBox_Module_changed)
+        self.ui.design_2_ComboBox_Map.currentIndexChanged.connect(self.design_2_ComboBox_Map_changed)
+        
         # Initialize default selections
         self.selected_statistic = 0     # Default statistic (Kills)
         self.selected_time_filter = 0   # Default time filter (Last Year)
@@ -956,10 +1326,162 @@ class MainWindow(QMainWindow):
         
         # Load graph for the first time
         self.load_graph()
+        
+    def load_settings(self):
+        with open(SETTINGS_FILE, "r") as json_file:
+            return json.load(json_file)  
+
+    def save_settings(self):
+        with open(SETTINGS_FILE, "w") as json_file:
+            json.dump(self.settings, json_file, indent=4)
+
+    def toggle_setting(self):
+        # Toggle the setting value based on the current state of the toggle button
+        current_value = self.ui.toggle_1.isChecked()  # Get the current state of the toggle button
+        self.settings['Settings']['Setting_1'] = current_value
+
+        # Save the updated settings back to the file
+        self.save_settings()
 
     def load_json_data(self):
         with open(JSON_FILE, "r") as json_file:
             return json.load(json_file)
+        
+    def design_2_ComboBox_Weapon_changed(self):
+        weapon = self.ui.design_2_ComboBox_Weapon.currentText().strip().lower()
+        self.ui.design_2_tab_1_text.setText(weapon)
+        
+        game_data = self.load_json_data()
+        
+        total_kills = 0
+        total_deaths = 0
+        total_games = 0
+        total_wins = 0
+        total_losses = 0
+        
+        for season, games in game_data.items():
+            for game_id, game in games.items():
+                if game['Weapon'].strip().lower() == weapon:
+                    total_kills += game['Kills']
+                    total_deaths += game['Deaths']
+                    total_games += 1
+                    if game['Win/Loss'].strip() == "Win":
+                        total_wins += 1
+                    else:
+                        total_losses += 1
+                        
+        kd_ratio = total_kills / max(1, total_deaths)
+        win_rate = (total_wins / max(1, total_games)) * 100
+        
+        self.ui.design_2_tab_1_kd.setText(f"K/D: {kd_ratio:.2f}")
+        self.ui.design_2_tab_1_kd_progress.setValue(int((total_kills / max(1, (total_kills + total_deaths))) * 100))
+        self.ui.design_2_tab_1_kd_progress.setFormat(f"K/D: {kd_ratio:.2f}")
+        
+        self.ui.design_2_tab_1_usage.setText(f"Usage: {total_games}")
+        self.ui.design_2_tab_1_usage_progress.setValue(int(win_rate))
+        self.ui.design_2_tab_1_usage_progress.setFormat(f"Win Rate: {win_rate:.2f}%")
+        
+        self.ui.design_2_tab_1_kills_label.setText(f"K: {total_kills}")
+        self.ui.design_2_tab_1_deaths_label.setText(f"D: {total_deaths}")
+        
+        self.ui.design_2_tab_1_wins_label.setText(f"W: {total_wins}")
+        self.ui.design_2_tab_1_losses_label.setText(f"L: {total_losses}")
+        
+    def design_2_ComboBox_Ability_changed(self):
+        ability = self.ui.design_2_ComboBox_Ability.currentText().strip().lower()
+        self.ui.design_2_tab_3_text.setText(ability)
+        
+        game_data = self.load_json_data()
+        
+        total_games = 0
+        total_wins = 0
+        total_losses = 0
+        
+        for season, games in game_data.items():
+            for game_id, game in games.items():
+                if game['Ability'].strip().lower() == ability:
+                    total_games += 1
+                    if game['Win/Loss'].strip() == "Win":
+                        total_wins += 1
+                    else:
+                        total_losses += 1
+        
+        win_rate = (total_wins / max(1, total_games)) * 100
+        
+        self.ui.design_2_tab_3_usage.setText(f"Usage: {total_games}")
+        self.ui.design_2_tab_3_usage_progress.setValue(int(win_rate))
+        self.ui.design_2_tab_3_usage_progress.setFormat(f"Win Rate: {win_rate:.2f}%")
+        
+        self.ui.design_2_tab_3_wins_label.setText(f"W: {total_wins}")
+        self.ui.design_2_tab_3_losses_label.setText(f"L: {total_losses}")
+        
+    def design_2_ComboBox_Module_changed(self):        
+        module = self.ui.design_2_ComboBox_Module.currentText().strip().lower()
+        self.ui.design_2_tab_2_text.setText(module)
+        
+        game_data = self.load_json_data()
+        
+        total_games = 0
+        total_wins = 0
+        total_losses = 0
+        
+        for season, games in game_data.items():
+            for game_id, game in games.items():
+                if game['Module'].strip().lower() == module:
+                    total_games += 1
+                    if game['Win/Loss'].strip() == "Win":
+                        total_wins += 1
+                    else:
+                        total_losses += 1
+        
+        win_rate = (total_wins / max(1, total_games)) * 100
+        
+        self.ui.design_2_tab_2_usage.setText(f"Usage: {total_games}")
+        self.ui.design_2_tab_2_usage_progress.setValue(int(win_rate))
+        self.ui.design_2_tab_2_usage_progress.setFormat(f"Win Rate: {win_rate:.2f}%")
+        
+        self.ui.design_2_tab_2_wins_label.setText(f"W: {total_wins}")
+        self.ui.design_2_tab_2_losses_label.setText(f"L: {total_losses}")
+        
+    def design_2_ComboBox_Map_changed(self):        
+        map = self.ui.design_2_ComboBox_Map.currentText().strip().lower()
+        self.ui.design_2_tab_4_text.setText(map)
+        
+        game_data = self.load_json_data()
+        
+        total_kills = 0
+        total_deaths = 0
+        total_games = 0
+        total_wins = 0
+        total_losses = 0
+        
+        for season, games in game_data.items():
+            for game_id, game in games.items():
+                if game['Map'].strip().lower() == map:
+                    total_kills += game['Kills']
+                    total_deaths += game['Deaths']
+                    total_games += 1
+                    if game['Win/Loss'].strip() == "Win":
+                        total_wins += 1
+                    else:
+                        total_losses += 1
+        
+        kd_ratio = total_kills / max(1, total_deaths)
+        win_rate = (total_wins / max(1, total_games)) * 100
+        
+        self.ui.design_2_tab_4_kd.setText(f"K/D: {kd_ratio:.2f}")
+        self.ui.design_2_tab_4_kd_progress.setValue(int((total_kills / max(1, (total_kills + total_deaths))) * 100))
+        self.ui.design_2_tab_4_kd_progress.setFormat(f"K/D: {kd_ratio:.2f}")
+        
+        self.ui.design_2_tab_4_usage.setText(f"Played: {total_games}")
+        self.ui.design_2_tab_4_usage_progress.setValue(int(win_rate))
+        self.ui.design_2_tab_4_usage_progress.setFormat(f"Win Rate: {win_rate:.2f}%")
+        
+        self.ui.design_2_tab_4_kills_label.setText(f"K: {total_kills}")
+        self.ui.design_2_tab_4_deaths_label.setText(f"D: {total_deaths}")
+        
+        self.ui.design_2_tab_4_wins_label.setText(f"W: {total_wins}")
+        self.ui.design_2_tab_4_losses_label.setText(f"L: {total_losses}")
 
     def filter_data_by_mode(self, games):
         if self.selected_button == 1:   # Button 1 -> All modes
@@ -1113,7 +1635,7 @@ class MainWindow(QMainWindow):
         # Set the fixed range for the view
         self.ui.graph.setRange(xRange=(0, len(x_labels) - 1), yRange=(0, y_max))
     
-    def on_tab_change(self, index):        
+    def on_tab_change(self, index):
         if index == 3:
             # Call load_saved_games only if the game_data.json file exists
             if BASE_DIR.exists():
@@ -1123,6 +1645,17 @@ class MainWindow(QMainWindow):
             # Call load_general_stats only if the game_data.json file exists
             if BASE_DIR.exists():
                 self.load_general_stats()
+                
+        if index == 4:
+            # checks what setting is enabled
+            if self.settings['Settings']['Setting_1']:
+                self.ui.design_2.show()
+                self.ui.design_1.hide()
+                self.ui.filler.setMinimumSize(796, 1070)
+            else:
+                self.ui.design_2.hide()
+                self.ui.design_1.show()
+                self.ui.filler.setMinimumSize(796, 1500)
             
     def load_general_stats(self):
         # First, calculate all general stats
@@ -1150,7 +1683,7 @@ class MainWindow(QMainWindow):
         # Clear previous seasonal stats if any, but keep the general stats
         for i in reversed(range(self.ui.verticalLayout_2.count())): 
             widget = self.ui.verticalLayout_2.itemAt(i).widget()
-            if widget is not None and widget.objectName() != "general_statistics":  # Adjust this check as needed
+            if widget is not None and widget.objectName() != "general_statistics":
                 widget.deleteLater()
 
         # Load the data from the JSON file
@@ -1198,17 +1731,17 @@ class MainWindow(QMainWindow):
             total_games += 1
 
             # Count wins and losses
-            if game_data["Win/Loss"].lower() == "win":
+            if game_data["Win/Loss"].strip().lower() == "win":
                 total_wins += 1
-                map_wins[game_data["Map"]] += 1
-                mode_wins[game_data["Mode"]] += 1
-            elif game_data["Win/Loss"].lower() == "loss":
+                map_wins[game_data["Map"].strip()] += 1
+                mode_wins[game_data["Mode"].strip()] += 1
+            elif game_data["Win/Loss"].strip().lower() == "loss":
                 total_losses += 1
 
             # Count abilities, weapons, and modules usage
-            ability_counter[game_data["Ability"]] += 1
-            weapon_counter[game_data["Weapon"]] += 1
-            module_counter[game_data["Module"]] += 1
+            ability_counter[game_data["Ability"].strip()] += 1
+            weapon_counter[game_data["Weapon"].strip()] += 1
+            module_counter[game_data["Module"].strip()] += 1
 
         # Avoid division by zero
         kd_ratio = round(total_kills / max(1, total_deaths), 2)
@@ -1311,18 +1844,18 @@ class MainWindow(QMainWindow):
                 self.total_games += 1
 
                 # Count wins and losses
-                if game_data["Win/Loss"].lower() == "win":
+                if game_data["Win/Loss"].strip().lower() == "win":
                     self.total_wins += 1
-                    map_wins[game_data["Map"]] += 1
-                    mode_wins[game_data["Mode"]] += 1
-                    weapon_counter[game_data["Weapon"]] += 1
-                elif game_data["Win/Loss"].lower() == "loss":
+                    map_wins[game_data["Map"].strip()] += 1
+                    mode_wins[game_data["Mode"].strip()] += 1
+                    weapon_counter[game_data["Weapon"].strip()] += 1
+                elif game_data["Win/Loss"].strip().lower() == "loss":
                     self.total_losses += 1
 
                 # Count abilities, weapons, and modules usage
-                ability_counter[game_data["Ability"]] += 1
-                weapon_counter[game_data["Weapon"]] += 1
-                module_counter[game_data["Module"]] += 1
+                ability_counter[game_data["Ability"].strip()] += 1
+                weapon_counter[game_data["Weapon"].strip()] += 1
+                module_counter[game_data["Module"].strip()] += 1
 
                 # Track weapon K/D ratio (kills divided by deaths)
                 kills = game_data["Kills"]
@@ -1462,7 +1995,7 @@ class MainWindow(QMainWindow):
         # Save the updated data back to the JSON file
         with open(BASE_DIR, "w") as jsonfile:
             json.dump(data, jsonfile, indent=4)
-            
+
     def load_saved_games(self):
         # Clear existing widgets in the scroll area
         for i in reversed(range(self.ui.verticalLayout.count() - 1)):
@@ -1490,7 +2023,7 @@ class MainWindow(QMainWindow):
                 frame.setFrameShape(QFrame.Shape.StyledPanel)
 
                 # Dynamically add labels for the game data
-                label_game = QLabel(f"{game_name}", frame)
+                label_game = QLabel(game_name[4:], frame)
                 label_game.setGeometry(10, 10, 61, 21)
                 label_game.setFont(font5)
 
