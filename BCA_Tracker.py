@@ -31,7 +31,8 @@ if not SETTINGS_FILE.exists():
         json.dump(
             {
                 "Settings":{
-                    "Setting_1": False
+                    "Setting_1": False,
+                    "Setting_2": "purple"
                 }
             }
             , jsonfile)
@@ -63,7 +64,6 @@ class Ui_MainWindow(object):
         self.settings_window = QWidget(self.centralwidget)
         self.settings_window.setObjectName(u"settings_window")
         self.settings_window.setGeometry(QRect(25, 25, 750, 550))
-        self.settings_window.setStyleSheet("background-color: #2d2d2d; border: 2px solid purple; border-radius: 10px;")
         self.settings_window.setVisible(False)
         
         self.settings_window_label = QLabel(self.settings_window)
@@ -111,6 +111,39 @@ class Ui_MainWindow(object):
         # Add the toggle to the horizontal layout
         horizontal_layout.addWidget(self.toggle_1)
         
+        self.settings_window_label_3 = QLabel(self.settings_window)
+        self.settings_window_label_3.setObjectName(u"settings_window_label_3")
+        self.settings_window_label_3.setGeometry(QRect(10, 90, 300, 30))
+        font2 = QFont()
+        font2.setFamilies([u"Moon"])
+        font2.setPointSize(16)
+        self.settings_window_label_3.setFont(font2)
+        self.settings_window_label_3.setStyleSheet("Background-color: transparent; border: none; color: White;")
+        self.settings_window_label_3.setText("Primary Color: ")
+        
+        # Text input
+        self.text_input = QLineEdit(self.settings_window)
+        self.text_input.setObjectName(u"text_input")
+        self.text_input.setGeometry(QRect(200, 90, 120, 30))
+        font3 = QFont()
+        font3.setFamilies([u"Moon"])
+        font3.setPointSize(16)
+        self.text_input.setFont(font3)
+        
+        # Confirm button
+        self.confirm_button = QPushButton(self.settings_window)
+        self.confirm_button.setObjectName(u"confirm_button")
+        self.confirm_button.setGeometry(QRect(330, 90, 70, 30))
+        self.confirm_button.setFont("Moon")
+        self.confirm_button.setText("Confirm")
+        
+        # Add a horizontal layout to the vertical layout
+        horizontal_layout = QHBoxLayout()
+        self.settings_window_layout.addLayout(horizontal_layout)
+
+        # Add the label to the horizontal layout
+        horizontal_layout.addWidget(self.settings_window_label_3)
+        
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setGeometry(QRect(0, 50, 801, 551))
@@ -120,9 +153,12 @@ class Ui_MainWindow(object):
         self.label.setObjectName(u"label")
         self.label.setGeometry(QRect(0, 10, 800, 61))
         self.label.setAlignment(Qt.AlignCenter)
+        
         self.credit_label = QLabel(self.tab_1)
         self.credit_label.setObjectName(u"credit_label")
-        self.credit_label.setGeometry(QRect(308, 470, 750, 61))
+        self.credit_label.setGeometry(QRect(0, 470, 800, 30))
+        self.credit_label.setAlignment(Qt.AlignCenter)
+        
         font = QFont()
         font.setFamilies([u"Moon"])
         font.setPointSize(36)
@@ -131,7 +167,8 @@ class Ui_MainWindow(object):
         self.pushButton_new_match = QPushButton(self.tab_1)
         self.pushButton_new_match.setObjectName(u"pushButton_new_match")
         self.pushButton_new_match.clicked.connect(lambda: self.tabWidget.setCurrentIndex(1))
-        self.pushButton_new_match.setGeometry(QRect(270, 220, 251, 61))
+        self.pushButton_new_match.setGeometry(QRect(0, 220, 250, 61))
+        self.pushButton_new_match.move((800 - self.pushButton_new_match.width())/2, 220)
         font1 = QFont()
         font1.setFamilies([u"Moon"])
         font1.setPointSize(22)
@@ -296,6 +333,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setObjectName(u"scrollArea_2")
         self.scrollArea_2.setGeometry(QRect(0, 0, 796, 525))
         self.scrollArea_2.setWidgetResizable(True)
+        self.scrollArea_2.setFrameShape(QFrame.Shape.NoFrame)
         self.scrollAreaWidgetContents_3 = QWidget()
         self.scrollAreaWidgetContents_3.setObjectName(u"scrollAreaWidgetContents_3")
         self.scrollAreaWidgetContents_3.setGeometry(QRect(0, 0, 777, 624))
@@ -388,6 +426,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setSizePolicy(sizePolicy)
         self.scrollArea.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setFrameShape(QFrame.Shape.NoFrame)
         self.scrollAreaWidgetContents_2 = QWidget()
         self.scrollAreaWidgetContents_2.setObjectName(u"scrollAreaWidgetContents_2")
         self.scrollAreaWidgetContents_2.setGeometry(QRect(0, 0, 779, 509))
@@ -421,6 +460,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setGeometry(QRect(0, 0, 796, 525))
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollArea_3.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollArea_3.setFrameShape(QFrame.Shape.NoFrame)
         
         # Frame for the scroll area
         self.filler = QFrame()
@@ -439,7 +479,6 @@ class Ui_MainWindow(object):
         self.button1.setObjectName(u"button1")
         self.button1.setGeometry(QRect(0, 10, 100, 40))
         self.button1.setFont(font2)
-        self.button1.setStyleSheet(u"color: purple;")
         
         # Button for Backup
         self.button2 = QPushButton(self.selection_box)
@@ -501,6 +540,7 @@ class Ui_MainWindow(object):
         self.design_1.setGeometry(QRect(5, 550, 775, 600))
         self.design_1.setFrameShape(QFrame.Shape.StyledPanel)
         self.design_1.setFrameShadow(QFrame.Shadow.Raised)
+        self.design_1.setStyleSheet(u"border: none;")   
         self.design_1.hide()
         
         # Design 2
@@ -509,6 +549,7 @@ class Ui_MainWindow(object):
         self.design_2.setGeometry(QRect(5, 550, 775, 515))
         self.design_2.setFrameShape(QFrame.Shape.StyledPanel)
         self.design_2.setFrameShadow(QFrame.Shadow.Raised)
+        self.design_2.setFrameShape(QFrame.Shape.NoFrame)
         
         # Design 2 - ComboBoxes for Weapons
         self.design_2_ComboBox_Weapon = QComboBox(self.design_2)
@@ -560,13 +601,6 @@ class Ui_MainWindow(object):
         self.design_2_ComboBox_Map.addItem("")
         self.design_2_ComboBox_Map.addItem("")
         self.design_2_ComboBox_Map.addItem("")
-        
-        # Dummy Image
-        # self.dummy_image = QLabel(self.design_2)
-        # self.dummy_image.setObjectName(u"dummy_image")
-        # self.dummy_image.setGeometry(QRect(30, 220, 710, 290))
-        # self.dummy_image.setPixmap(QPixmap(u"assets/Blette.png"))
-        # self.dummy_image.setScaledContents(True)
         
         # Design 2 - Tabs
         self.design_2_tab = QTabWidget(self.design_2)
@@ -775,7 +809,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
         self.actiong.setText(QCoreApplication.translate("MainWindow", u"g", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.2.2", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.3", None))
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Created by: Puppetino", None))
         self.pushButton_new_match.setText(QCoreApplication.translate("MainWindow", u"New Game", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), QCoreApplication.translate("MainWindow", u"Home", None))
@@ -1212,12 +1246,12 @@ class GameDataEditor(QMainWindow, Ui_MainWindow2):
         self.ui.spinBox_kills.setValue(int(game_data['Kills']))
         self.ui.spinBox_deaths.setValue(int(game_data['Deaths']))
         self.ui.spinBox_assists.setValue(int(game_data['Assists']))
-        self.ui.comboBox_ability.setCurrentText(game_data['Ability'])
-        self.ui.comboBox_weapon.setCurrentText(game_data['Weapon'])
-        self.ui.comboBox_module.setCurrentText(game_data['Module'])
-        self.ui.comboBox_mode.setCurrentText(game_data['Mode'])
-        self.ui.comboBox_map.setCurrentText(game_data['Map'])
-        self.ui.comboBox_win_loss.setCurrentText(game_data['Win/Loss'])
+        self.ui.comboBox_ability.setCurrentText(game_data['Ability'].strip())
+        self.ui.comboBox_weapon.setCurrentText(game_data['Weapon'].strip())
+        self.ui.comboBox_module.setCurrentText(game_data['Module'].strip())
+        self.ui.comboBox_mode.setCurrentText(game_data['Mode'].strip())
+        self.ui.comboBox_map.setCurrentText(game_data['Map'].strip())
+        self.ui.comboBox_win_loss.setCurrentText(game_data['Win/Loss'].strip())
         self.ui.date_lineEdit.setText(game_data['DateTime'])
 
 
@@ -1286,8 +1320,35 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         
+        # Connect the confirm button to the confirm_action method
+        self.ui.confirm_button.clicked.connect(self.confirm_action)
+        
+        # Create the opacity effect
+        self.opacity_effect = QGraphicsOpacityEffect(self.ui.credit_label)
+        self.ui.credit_label.setGraphicsEffect(self.opacity_effect)
+        
+        # Connect the credit label to the event filter
+        self.ui.credit_label.installEventFilter(self)
+        
+        # Connect the settings button to the event filter
+        self.ui.settings_button.installEventFilter(self)
+        
+        self.ui.settings_window_close_button.installEventFilter(self)
+        
         # Load settings from the settings file and store them in self.settings
         self.settings = self.load_settings()
+        
+        # Load colors from the settings file and store them in self.colors
+        self.color = self.load_colors()
+        
+        self.ui.text_input.setText(self.color)
+        
+        # Apply the color
+        self.ui.settings_window.setStyleSheet(f"border: 2px solid {self.color}; background-color: #2D2D2D; border-radius: 10px;")
+        self.ui.toggle_1._active_color = self.color
+        self.ui.text_input.setStyleSheet(f"border: 1px solid {self.color};")
+        self.ui.confirm_button.setStyleSheet(f"border: 1px solid {self.color};")
+        self.ui.button1.setStyleSheet(f"color: {self.color};")
         
         # Apply settings to the toggle button
         self.ui.toggle_1.setChecked(self.settings['Settings']['Setting_1'])  # Set toggle based on the saved state
@@ -1335,7 +1396,51 @@ class MainWindow(QMainWindow):
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as json_file:
             json.dump(self.settings, json_file, indent=4)
-
+            
+    def load_colors(self):
+        settings = self.load_settings()
+        return settings['Settings']['Setting_2']
+        
+    def eventFilter(self, obj, event):
+        if obj is self.ui.credit_label:
+            if event.type() == QEvent.Enter:
+                # Change the text color to purple
+                self.ui.credit_label.setStyleSheet(f"QLabel {{ color: {self.color}; text-decoration: underline; }}")
+                # Change the cursor shape to a pointing hand
+                self.ui.credit_label.setCursor(QCursor(Qt.PointingHandCursor))
+            elif event.type() == QEvent.Leave:
+                # Change the text color back to black
+                self.ui.credit_label.setStyleSheet("QLabel { color: white; }")
+                # Reset the cursor shape to the default
+                self.ui.credit_label.setCursor(QCursor(Qt.ArrowCursor))
+            elif event.type() == QEvent.MouseButtonPress:
+                # Open the website
+                QDesktopServices.openUrl(QUrl("https://github.com/Puppetino"))
+        elif obj is self.ui.settings_button:
+            if event.type() == QEvent.Enter:
+                # Change the cursor shape to a pointing hand
+                self.ui.settings_button.setCursor(QCursor(Qt.PointingHandCursor))
+            elif event.type() == QEvent.Leave:
+                # Reset the cursor shape to the default
+                self.ui.settings_button.setCursor(QCursor(Qt.ArrowCursor))
+        elif obj is self.ui.settings_window_close_button:
+            if event.type() == QEvent.Enter:
+                # Change the cursor shape to a pointing hand
+                self.ui.settings_window_close_button.setCursor(QCursor(Qt.PointingHandCursor))
+            elif event.type() == QEvent.Leave:
+                # Reset the cursor shape to the default
+                self.ui.settings_window_close_button.setCursor(QCursor(Qt.ArrowCursor))
+        return super().eventFilter(obj, event)
+            
+    def confirm_action(self):
+        # Gets the text from the line edit
+        text = self.ui.text_input.text()
+        if text == "":
+            return
+        # saves the text to the file in setting_2
+        self.settings['Settings']['Setting_2'] = text
+        self.save_settings()
+        
     def toggle_setting(self):
         # Toggle the setting value based on the current state of the toggle button
         current_value = self.ui.toggle_1.isChecked()  # Get the current state of the toggle button
@@ -1483,7 +1588,7 @@ class MainWindow(QMainWindow):
         
         self.ui.design_2_tab_4_wins_label.setText(f"W: {total_wins}")
         self.ui.design_2_tab_4_losses_label.setText(f"L: {total_losses}")
-
+        
     def filter_data_by_mode(self, games):
         if self.selected_button == 1:   # Button 1 -> All modes
             return games
@@ -1552,23 +1657,23 @@ class MainWindow(QMainWindow):
             getattr(self.ui, f"button{i}").setStyleSheet("color: white")
         
         # Set the clicked button to purple
-        getattr(self.ui, f"button{index}").setStyleSheet("color: purple")
+        getattr(self.ui, f"button{index}").setStyleSheet(f"color: {self.color}")
         
         # Store the selected mode (button clicked)
         self.selected_button = index
-
+        
         # Re-load graph with updated mode
         self.load_graph()
 
     def statistic_changed(self, statistic):
         self.selected_statistic = statistic
-
+        
         # Re-load graph with updated statistic
         self.load_graph()
 
     def time_filter_changed(self, time_filter):
         self.selected_time_filter = time_filter
-   
+        
         # Re-load graph with updated time filter
         self.load_graph()
 
@@ -1595,6 +1700,8 @@ class MainWindow(QMainWindow):
         return filtered_games, x_values
 
     def load_graph(self):
+        if not self.color:
+            self.color = 'purple'
         # Clear the existing graph before plotting the new one
         self.ui.graph.clear()
 
@@ -1618,7 +1725,7 @@ class MainWindow(QMainWindow):
         y_values.reverse()
 
         # Plot the data on the graph (fill gaps where no data is available)
-        pen = pg.mkPen('purple')
+        pen = pg.mkPen(f"{self.color}")
         x_indices = list(range(len(x_labels)))
         self.ui.graph.plot(x_indices, y_values, pen=pen, symbol='x')
 
@@ -1661,6 +1768,10 @@ class MainWindow(QMainWindow):
                 self.load_specific_stats()
                 
     def load_specific_stats(self):
+        # Delete all QGroupBoxes from the layout
+        for group_box in self.ui.design_1.findChildren(QGroupBox):
+            group_box.deleteLater()
+
         # Load data using the existing load_json_data function
         game_data = self.load_json_data()
 
@@ -1786,9 +1897,11 @@ class MainWindow(QMainWindow):
             item_box = QGroupBox(self.ui.design_1)  # Clone the design_1_box
             item_box.setGeometry(QRect(10, y_offset, 755, 240))
             item_box.setObjectName(f"{item_type.lower()}_{item_name}")
+            item_box.setStyleSheet(f"border: 1px solid {self.color};")
 
             # Image
             item_image = QLabel(item_box)
+            item_image.setStyleSheet("border: none;")
             
             # Set the correct image based on item type and name, considering folder paths
             if item_type == "Weapon":
@@ -1806,19 +1919,20 @@ class MainWindow(QMainWindow):
             elif item_type == "Map":
                 item_image.setGeometry(QRect(10, 10, 150, 110))
                 image_path = map_images.get(item_name, "default.jpg")
+                item_image.setStyleSheet(f"border: 1px solid {self.color};")
                 if item_name == "Singularity":
                     item_image.setPixmap(QPixmap(f"assets/{image_path}"))
                 else:
                     item_image.setPixmap(QPixmap(f"assets/Arenas/{image_path}"))
-                
+            
             item_image.setScaledContents(True)
 
             # Name Label
             name_label = QLabel(item_box)
-            name_label.setGeometry(QRect(130, 15, 300, 30))
+            name_label.setGeometry(QRect(170, 15, 300, 30))
             name_label.setFont(QFont("Moon", 22))
             name_label.setText(item_name)
-            name_label.setAlignment(Qt.AlignCenter)
+            name_label.setStyleSheet("border: none;")
 
             # If it's a weapon or map, show K/D label, otherwise skip it
             if item_type in ["Weapon", "Map"]:
@@ -1827,28 +1941,36 @@ class MainWindow(QMainWindow):
                 kd_label.setGeometry(QRect(280, 160, 300, 30))
                 kd_label.setFont(QFont("Moon", 16))
                 kd_label.setText(f"K/D: {stats['Kills'] / max(1, stats['Deaths']):.2f}")
+                kd_label.setStyleSheet("border: none;")
                 
                 # Kills Label
                 kills_label = QLabel(item_box)
                 kills_label.setGeometry(QRect(280, 200, 300, 30))
                 kills_label.setFont(QFont("Moon", 16))
                 kills_label.setText(f"Kills: {stats['Kills']}")
+                kills_label.setStyleSheet("border: none;")
 
             # Wins/Loss Label
             win_loss_label = QLabel(item_box)
             win_loss_label.setGeometry(QRect(20, 160, 300, 30))
             win_loss_label.setFont(QFont("Moon", 16))
             win_loss_label.setText(f"W/L: {stats['Wins']}/{stats['Losses']}")
+            win_loss_label.setStyleSheet("border: none;")
 
             # Total Uses Label
             total_uses_label = QLabel(item_box)
             total_uses_label.setGeometry(QRect(20, 200, 300, 30))
             total_uses_label.setFont(QFont("Moon", 16))
-            total_uses_label.setText(f"Total Uses: {stats['Total_Uses']}")
+            total_uses_label.setStyleSheet("border: none;")
+            if item_type == "Map":
+                total_uses_label.setText(f"Total Plays: {stats['Total_Uses']}")
+            else:
+                total_uses_label.setText(f"Total Uses: {stats['Total_Uses']}")
 
             # Circular Progress Bar for Winrate
             circular_progress_bar_container = QFrame(item_box)
             circular_progress_bar_container.setGeometry(QRect(510, 10, 220, 220))
+            circular_progress_bar_container.setStyleSheet("border: none;")
 
             layout = QVBoxLayout()
             circular_progress_bar = CircularProgress()
@@ -1856,7 +1978,7 @@ class MainWindow(QMainWindow):
             circular_progress_bar.prefix = "Winrate: "
             circular_progress_bar.text_color = "#FFFFFF"
             circular_progress_bar.progress_width = 2
-            circular_progress_bar.progress_color = "purple"
+            circular_progress_bar.progress_color = self.color
             circular_progress_bar.font_family = "Moon"
             circular_progress_bar.font_size = 18
             circular_progress_bar.height = 200
@@ -1866,7 +1988,7 @@ class MainWindow(QMainWindow):
             layout.addWidget(circular_progress_bar, Qt.AlignCenter, Qt.AlignCenter)
             circular_progress_bar_container.setLayout(layout)
 
-            # Highlight best item with a golden border
+            # Highlight best items with a golden border
             if item_name == best_item:
                 item_box.setStyleSheet("border: 1px solid gold;")
                 circular_progress_bar.progress_color = "gold"
@@ -1875,6 +1997,8 @@ class MainWindow(QMainWindow):
                 if item_type in ["Weapon", "Map"]:
                     kd_label.setStyleSheet("border: none;")
                     kills_label.setStyleSheet("border: none;")
+                if item_type == "Map":
+                    item_image.setStyleSheet("border: 1px solid gold;")
                 win_loss_label.setStyleSheet("border: none;")
                 total_uses_label.setStyleSheet("border: none;")
                 circular_progress_bar_container.setStyleSheet("border: none;")
@@ -1900,7 +2024,7 @@ class MainWindow(QMainWindow):
         self.ui.losses_lable_general.setText(f"Losses: {self.total_losses}")
         self.ui.lifetime_win_ration_lable_general.setText(f"Lifetime W/L: {self.win_ratio}%")
         self.ui.progressBar_win_ratio_general.setValue(self.win_ratio)
-        self.ui.progressBar_win_ratio_general.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: black;} QProgressBar::chunk { background-color: purple;}")
+        self.ui.progressBar_win_ratio_general.setStyleSheet(f"QProgressBar {{ border-radius: 10px; text-align: center; background-color: darkgray;}} QProgressBar::chunk {{ background-color: {self.color};}}")
         self.ui.most_used_ability_lable_general.setText(f"Most Used Ability: {self.most_used_ability}")
         self.ui.most_used_weapon_lable_general.setText(f"Most Used Weapon: {self.most_used_weapon}")
         self.ui.most_used_module_lable_general.setText(f"Most Used Module: {self.most_used_module}")
@@ -1997,7 +2121,7 @@ class MainWindow(QMainWindow):
         progressBar_win_ratio.setGeometry(QRect(480, 34, 261, 2))
         progressBar_win_ratio.setValue(win_ratio)
         progressBar_win_ratio.setTextVisible(False)
-        progressBar_win_ratio.setStyleSheet("QProgressBar { border-radius: 10px; text-align: center; background-color: black;} QProgressBar::chunk { background-color: purple;}")
+        progressBar_win_ratio.setStyleSheet(f"QProgressBar {{ border-radius: 10px; text-align: center; background-color: darkgray;}} QProgressBar::chunk {{ background-color: {self.color};}}")
 
         kills_label = QLabel(f"Kills: {total_kills}", season_group_box)
         kills_label.setGeometry(QRect(10, 80, 200, 31))
@@ -2191,7 +2315,7 @@ class MainWindow(QMainWindow):
             "Mode": self.ui.comboBox_mode.currentText(),
             "Map": self.ui.comboBox_map.currentText(),
             "Win/Loss": self.ui.comboBox_win_loss.currentText(),
-            "Timestamp": datetime.now().timestamp()  # Store the creation timestamp
+            "Timestamp": datetime.now().timestamp()
         }
 
         # Add the game data to the season
