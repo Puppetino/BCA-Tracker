@@ -13,6 +13,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 from py_toggle import PyToggle
+from circular_progress import CircularProgress
 
 FOLDER_DIR = Path("data")
 JSON_FILE = FOLDER_DIR / "game_data.json"
@@ -30,7 +31,7 @@ if not SETTINGS_FILE.exists():
         json.dump(
             {
                 "Settings":{
-                    "Setting_1": True
+                    "Setting_1": False
                 }
             }
             , jsonfile)
@@ -117,7 +118,8 @@ class Ui_MainWindow(object):
         self.tab_1.setObjectName(u"tab_1")
         self.label = QLabel(self.tab_1)
         self.label.setObjectName(u"label")
-        self.label.setGeometry(QRect(50, 10, 700, 61))
+        self.label.setGeometry(QRect(0, 10, 800, 61))
+        self.label.setAlignment(Qt.AlignCenter)
         self.credit_label = QLabel(self.tab_1)
         self.credit_label.setObjectName(u"credit_label")
         self.credit_label.setGeometry(QRect(308, 470, 750, 61))
@@ -497,7 +499,6 @@ class Ui_MainWindow(object):
         self.design_1 = QFrame(self.filler)
         self.design_1.setObjectName(u"design_1")
         self.design_1.setGeometry(QRect(5, 550, 775, 600))
-        self.design_1.setStyleSheet(u"background-color: transparent; border: 2px solid purple; border-radius: 10px;")
         self.design_1.setFrameShape(QFrame.Shape.StyledPanel)
         self.design_1.setFrameShadow(QFrame.Shadow.Raised)
         self.design_1.hide()
@@ -561,11 +562,11 @@ class Ui_MainWindow(object):
         self.design_2_ComboBox_Map.addItem("")
         
         # Dummy Image
-        # self.dummy_image = QLabel(self.design_2)
-        # self.dummy_image.setObjectName(u"dummy_image")
-        # self.dummy_image.setGeometry(QRect(30, 220, 710, 290))
-        # self.dummy_image.setPixmap(QPixmap(u"assets/Blette.png"))
-        # self.dummy_image.setScaledContents(True)
+        self.dummy_image = QLabel(self.design_2)
+        self.dummy_image.setObjectName(u"dummy_image")
+        self.dummy_image.setGeometry(QRect(30, 220, 710, 290))
+        self.dummy_image.setPixmap(QPixmap(u"assets/Blette.png"))
+        self.dummy_image.setScaledContents(True)
         
         # Design 2 - Tabs
         self.design_2_tab = QTabWidget(self.design_2)
@@ -774,7 +775,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
         self.actiong.setText(QCoreApplication.translate("MainWindow", u"g", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.2.1", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.2.2", None))
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Created by: Puppetino", None))
         self.pushButton_new_match.setText(QCoreApplication.translate("MainWindow", u"New Game", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), QCoreApplication.translate("MainWindow", u"Home", None))
@@ -1415,7 +1416,7 @@ class MainWindow(QMainWindow):
         self.ui.design_2_tab_3_wins_label.setText(f"W: {total_wins}")
         self.ui.design_2_tab_3_losses_label.setText(f"L: {total_losses}")
         
-    def design_2_ComboBox_Module_changed(self):        
+    def design_2_ComboBox_Module_changed(self):
         module = self.ui.design_2_ComboBox_Module.currentText().strip().lower()
         self.ui.design_2_tab_2_text.setText(module)
         
@@ -1443,7 +1444,7 @@ class MainWindow(QMainWindow):
         self.ui.design_2_tab_2_wins_label.setText(f"W: {total_wins}")
         self.ui.design_2_tab_2_losses_label.setText(f"L: {total_losses}")
         
-    def design_2_ComboBox_Map_changed(self):        
+    def design_2_ComboBox_Map_changed(self):
         map = self.ui.design_2_ComboBox_Map.currentText().strip().lower()
         self.ui.design_2_tab_4_text.setText(map)
         
@@ -1555,19 +1556,19 @@ class MainWindow(QMainWindow):
         
         # Store the selected mode (button clicked)
         self.selected_button = index
-        
+
         # Re-load graph with updated mode
         self.load_graph()
 
     def statistic_changed(self, statistic):
         self.selected_statistic = statistic
-        
+
         # Re-load graph with updated statistic
         self.load_graph()
 
     def time_filter_changed(self, time_filter):
         self.selected_time_filter = time_filter
-        
+   
         # Re-load graph with updated time filter
         self.load_graph()
 
@@ -1634,7 +1635,7 @@ class MainWindow(QMainWindow):
 
         # Set the fixed range for the view
         self.ui.graph.setRange(xRange=(0, len(x_labels) - 1), yRange=(0, y_max))
-    
+
     def on_tab_change(self, index):
         if index == 3:
             # Call load_saved_games only if the game_data.json file exists
@@ -1655,8 +1656,235 @@ class MainWindow(QMainWindow):
             else:
                 self.ui.design_2.hide()
                 self.ui.design_1.show()
-                self.ui.filler.setMinimumSize(796, 1500)
+                self.ui.design_1.setMinimumHeight(5980)
+                self.ui.filler.setMinimumHeight(6540)
+                self.load_specific_stats()
+                
+    def load_specific_stats(self):
+        # Load data using the existing load_json_data function
+        game_data = self.load_json_data()
+
+        # Predefined lists for weapons, modules, abilities, and maps
+        weapon_list = ["Sparks", "Storm", "Orion", "Pulser", "Vortex-5", "Nova"]
+        module_list = ["Regeneration", "Mobility", "Vampirism", "Berserker", "Heal Booster", "Synchronisation"]
+        ability_list = ["Blast", "Shield Healing", "Teleportation", "Invisibility", "Flash Bang", "Black Hole"]
+        map_list = ["Trinity Island", "Shroomworld", "Lost Complex", "Twilight Path", "Singularity"]
+
+        # Initialize empty dicts for each category
+        weapons = {weapon: {'Kills': 0, 'Deaths': 0, 'Wins': 0, 'Losses': 0, 'Total_Uses': 0} for weapon in weapon_list}
+        modules = {module: {'Wins': 0, 'Losses': 0, 'Total_Uses': 0} for module in module_list}
+        abilities = {ability: {'Wins': 0, 'Losses': 0, 'Total_Uses': 0} for ability in ability_list}
+        maps = {game_map: {'Kills': 0, 'Deaths': 0, 'Wins': 0, 'Losses': 0, 'Total_Uses': 0} for game_map in map_list}
+
+        # Collect and aggregate data from game_data
+        for season, games in game_data.items():
+            for game_id, game_data in games.items():
+                # Update weapon stats
+                weapon = game_data['Weapon'].strip()
+                if weapon in weapons:
+                    weapons[weapon]['Kills'] += game_data['Kills']
+                    weapons[weapon]['Deaths'] += game_data['Deaths']
+                    weapons[weapon]['Wins'] += 1 if game_data['Win/Loss'].strip().lower() == 'win' else 0
+                    weapons[weapon]['Losses'] += 1 if game_data['Win/Loss'].strip().lower() == 'loss' else 0
+                    weapons[weapon]['Total_Uses'] += 1
+
+                # Update module stats (no kills/deaths)
+                module = game_data['Module'].strip()
+                if module in modules:
+                    modules[module]['Wins'] += 1 if game_data['Win/Loss'].strip().lower() == 'win' else 0
+                    modules[module]['Losses'] += 1 if game_data['Win/Loss'].strip().lower() == 'loss' else 0
+                    modules[module]['Total_Uses'] += 1
+
+                # Update ability stats (no kills/deaths)
+                ability = game_data['Ability'].strip()
+                if ability in abilities:
+                    abilities[ability]['Wins'] += 1 if game_data['Win/Loss'].strip().lower() == 'win' else 0
+                    abilities[ability]['Losses'] += 1 if game_data['Win/Loss'].strip().lower() == 'loss' else 0
+                    abilities[ability]['Total_Uses'] += 1
+
+                # Update map stats
+                game_map = game_data['Map'].strip()
+                if game_map in maps:
+                    maps[game_map]['Kills'] += game_data['Kills']
+                    maps[game_map]['Deaths'] += game_data['Deaths']
+                    maps[game_map]['Wins'] += 1 if game_data['Win/Loss'].strip().lower() == 'win' else 0
+                    maps[game_map]['Losses'] += 1 if game_data['Win/Loss'].strip().lower() == 'loss' else 0
+                    maps[game_map]['Total_Uses'] += 1
+
+        # Find the best items based on Kills for weapons and maps, Wins for modules and abilities
+        best_weapon = max(weapons, key=lambda w: weapons[w]['Kills'])
+        best_module = max(modules, key=lambda m: modules[m]['Wins'])
+        best_ability = max(abilities, key=lambda a: abilities[a]['Wins'])
+        best_map = max(maps, key=lambda m: maps[m]['Kills'])
+
+        # Create UI containers
+        y_offset = 10  # Start position for dynamically created boxes
+
+        # Show the best items first
+        self.create_ui_containers({best_weapon: weapons[best_weapon]}, "Weapon", best_weapon, y_offset)
+        y_offset += 260
+        self.create_ui_containers({best_module: modules[best_module]}, "Module", best_module, y_offset)
+        y_offset += 260
+        self.create_ui_containers({best_ability: abilities[best_ability]}, "Ability", best_ability, y_offset)
+        y_offset += 260
+        self.create_ui_containers({best_map: maps[best_map]}, "Map", best_map, y_offset)
+        y_offset += 260
+
+        # Show the rest of the items
+        for item_dict, item_type, best_item in [
+            (weapons, "Weapon", best_weapon),
+            (modules, "Module", best_module),
+            (abilities, "Ability", best_ability),
+            (maps, "Map", best_map)
+        ]:
+            # Remove the best item so we don't show it twice
+            del item_dict[best_item]
+            self.create_ui_containers(item_dict, item_type, best_item, y_offset)
+            y_offset += len(item_dict) * 260
+
+    def create_ui_containers(self, items, item_type, best_item, y_offset):
+        box_height = 260  # Height of each box
+        
+        # Mappings for image file names
+        weapon_images = {
+            "Storm": "Weapon_Pounder.png",
+            "Nova": "Weapon_Ransacker.png",
+            "Orion": "Weapon_Revoker.png",
+            "Sparks": "Weapon_Sparkler.png",
+            "Vortex-5": "Weapon_Spreader.png",
+            "Pulser": "Weapon_Striker.png"
+        }
+        
+        module_images = {
+            "Berserker": "Module_Berzerker.png",
+            "Heal Booster": "Module_HealBooster.png",
+            "Mobility": "Module_Mobility.png",
+            "Regeneration": "Module_Regeneration.png",
+            "Synchronisation": "Module_Synchronisation.png",
+            "Vampirism": "Module_Vampirism.png"
+        }
+        
+        ability_images = {
+            "Black Hole": "Ability_BlackHole.png",
+            "Blast": "Ability_Blast.png",
+            "Flash Bang": "Ability_Flash.png",
+            "Shield Healing": "Ability_Heal.png",
+            "Invisibility": "Ability_Invisibility.png",
+            "Teleportation": "Ability_Teleport.png"
+        }
+        
+        map_images = {
+            "Trinity Island": "Trinity_Island_02.jpg",
+            "Shroomworld": "Shroomworld_02.jpg",
+            "Lost Complex": "Lost_Complex_02.jpg",
+            "Twilight Path": "Twilight_Path_02.jpg",
+            "Singularity": "Blette.png"
+        }
+
+        for item_name, stats in items.items():
+            # Clone the template for the design_1_box
+            item_box = QGroupBox(self.ui.design_1)  # Clone the design_1_box
+            item_box.setGeometry(QRect(10, y_offset, 755, 240))
+            item_box.setObjectName(f"{item_type.lower()}_{item_name}")
+
+            # Image
+            item_image = QLabel(item_box)
             
+            # Set the correct image based on item type and name, considering folder paths
+            if item_type == "Weapon":
+                item_image.setGeometry(QRect(10, 10, 120, 120))
+                image_path = weapon_images.get(item_name, "default.png")
+                item_image.setPixmap(QPixmap(f"assets/Weapon/{image_path}"))
+            elif item_type == "Module":
+                item_image.setGeometry(QRect(10, 10, 120, 120))
+                image_path = module_images.get(item_name, "default.png")
+                item_image.setPixmap(QPixmap(f"assets/Module/{image_path}"))
+            elif item_type == "Ability":
+                item_image.setGeometry(QRect(10, 10, 120, 120))
+                image_path = ability_images.get(item_name, "default.png")
+                item_image.setPixmap(QPixmap(f"assets/Ability/{image_path}"))
+            elif item_type == "Map":
+                item_image.setGeometry(QRect(10, 10, 150, 110))
+                image_path = map_images.get(item_name, "default.jpg")
+                if item_name == "Singularity":
+                    item_image.setPixmap(QPixmap(f"assets/{image_path}"))
+                else:
+                    item_image.setPixmap(QPixmap(f"assets/Arenas/{image_path}"))
+                
+            item_image.setScaledContents(True)
+
+            # Name Label
+            name_label = QLabel(item_box)
+            name_label.setGeometry(QRect(130, 15, 300, 30))
+            name_label.setFont(QFont("Moon", 22))
+            name_label.setText(item_name)
+            name_label.setAlignment(Qt.AlignCenter)
+
+            # If it's a weapon or map, show K/D label, otherwise skip it
+            if item_type in ["Weapon", "Map"]:
+                # K/D Label
+                kd_label = QLabel(item_box)
+                kd_label.setGeometry(QRect(280, 160, 300, 30))
+                kd_label.setFont(QFont("Moon", 16))
+                kd_label.setText(f"K/D: {stats['Kills'] / max(1, stats['Deaths']):.2f}")
+                
+                # Kills Label
+                kills_label = QLabel(item_box)
+                kills_label.setGeometry(QRect(280, 200, 300, 30))
+                kills_label.setFont(QFont("Moon", 16))
+                kills_label.setText(f"Kills: {stats['Kills']}")
+
+            # Wins/Loss Label
+            win_loss_label = QLabel(item_box)
+            win_loss_label.setGeometry(QRect(20, 160, 300, 30))
+            win_loss_label.setFont(QFont("Moon", 16))
+            win_loss_label.setText(f"W/L: {stats['Wins']}/{stats['Losses']}")
+
+            # Total Uses Label
+            total_uses_label = QLabel(item_box)
+            total_uses_label.setGeometry(QRect(20, 200, 300, 30))
+            total_uses_label.setFont(QFont("Moon", 16))
+            total_uses_label.setText(f"Total Uses: {stats['Total_Uses']}")
+
+            # Circular Progress Bar for Winrate
+            circular_progress_bar_container = QFrame(item_box)
+            circular_progress_bar_container.setGeometry(QRect(510, 10, 220, 220))
+
+            layout = QVBoxLayout()
+            circular_progress_bar = CircularProgress()
+            circular_progress_bar.value = int((stats['Wins'] / max(1, stats['Wins'] + stats['Losses'])) * 100)
+            circular_progress_bar.prefix = "Winrate: "
+            circular_progress_bar.text_color = "#FFFFFF"
+            circular_progress_bar.progress_width = 2
+            circular_progress_bar.progress_color = "purple"
+            circular_progress_bar.font_family = "Moon"
+            circular_progress_bar.font_size = 18
+            circular_progress_bar.height = 200
+            circular_progress_bar.width = 200
+            circular_progress_bar.setMinimumSize(circular_progress_bar.width, circular_progress_bar.height)
+
+            layout.addWidget(circular_progress_bar, Qt.AlignCenter, Qt.AlignCenter)
+            circular_progress_bar_container.setLayout(layout)
+
+            # Highlight best item with a golden border
+            if item_name == best_item:
+                item_box.setStyleSheet("border: 1px solid gold;")
+                circular_progress_bar.progress_color = "gold"
+                item_image.setStyleSheet("border: none;")
+                name_label.setStyleSheet("border: none; color: gold;")
+                if item_type in ["Weapon", "Map"]:
+                    kd_label.setStyleSheet("border: none;")
+                    kills_label.setStyleSheet("border: none;")
+                win_loss_label.setStyleSheet("border: none;")
+                total_uses_label.setStyleSheet("border: none;")
+                circular_progress_bar_container.setStyleSheet("border: none;")
+
+            # Adjust the vertical offset for the next box
+            y_offset += box_height
+
+            # Show the item box
+            item_box.show()
+        
     def load_general_stats(self):
         # First, calculate all general stats
         self.calculate_general_stats()
