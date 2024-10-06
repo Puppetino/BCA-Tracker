@@ -562,11 +562,11 @@ class Ui_MainWindow(object):
         self.design_2_ComboBox_Map.addItem("")
         
         # Dummy Image
-        self.dummy_image = QLabel(self.design_2)
-        self.dummy_image.setObjectName(u"dummy_image")
-        self.dummy_image.setGeometry(QRect(30, 220, 710, 290))
-        self.dummy_image.setPixmap(QPixmap(u"assets/Blette.png"))
-        self.dummy_image.setScaledContents(True)
+        # self.dummy_image = QLabel(self.design_2)
+        # self.dummy_image.setObjectName(u"dummy_image")
+        # self.dummy_image.setGeometry(QRect(30, 220, 710, 290))
+        # self.dummy_image.setPixmap(QPixmap(u"assets/Blette.png"))
+        # self.dummy_image.setScaledContents(True)
         
         # Design 2 - Tabs
         self.design_2_tab = QTabWidget(self.design_2)
