@@ -2740,9 +2740,19 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
-    icon = QIcon("assets/app.ico")
+
+    # Use different icon based on the platform
+    if sys.platform == "win32":
+        icon = QIcon("assets/app.ico")
+    else:
+        icon = QIcon("assets/app.png")
+
     app.setWindowIcon(icon)
+
     app_id = str(uuid.uuid4())
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    
+    if sys.platform == "win32":
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+
     window.show()
     sys.exit(app.exec())
