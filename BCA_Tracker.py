@@ -8,6 +8,7 @@ from collections import Counter
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from PySide6 import QtCore
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
@@ -32,7 +33,8 @@ if not SETTINGS_FILE.exists():
             {
                 "Settings":{
                     "Setting_1": False,
-                    "Setting_2": "purple"
+                    "Setting_2": "purple",
+                    "Setting_3": False
                 }
             }
             , jsonfile)
@@ -48,10 +50,17 @@ class Ui_MainWindow(object):
         MainWindow.resize(800, 600)
         MainWindow.setMinimumSize(QSize(800, 600))
         MainWindow.setMaximumSize(QSize(800, 600))
+        
+        # Action for MainWindow
         self.actiong = QAction(MainWindow)
         self.actiong.setObjectName(u"actiong")
+        
+        # Central widget setup
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
+        
+        # Set the central widget
+        MainWindow.setCentralWidget(self.centralwidget)
         
         # LIGHT FONTS
         font = QFont()
@@ -105,7 +114,7 @@ class Ui_MainWindow(object):
         font8.setPointSize(36)
         font8.setBold(True)
         
-        
+        # REST OF THE SETUP
         self.settings_button = QPushButton(self.centralwidget)
         self.settings_button.setObjectName(u"settings_button")
         self.settings_button.setGeometry(QRect(750, 10, 40, 40))
@@ -161,7 +170,7 @@ class Ui_MainWindow(object):
         
         self.settings_window_label_3 = QLabel(self.settings_window)
         self.settings_window_label_3.setObjectName(u"settings_window_label_3")
-        self.settings_window_label_3.setGeometry(QRect(10, 90, 300, 30))
+        self.settings_window_label_3.setGeometry(QRect(10, 110, 300, 30))
         
         self.settings_window_label_3.setFont(font1)
         self.settings_window_label_3.setStyleSheet("Background-color: transparent; border: none; color: White;")
@@ -179,6 +188,7 @@ class Ui_MainWindow(object):
         self.confirm_button.setGeometry(QRect(330, 90, 70, 30))
         self.confirm_button.setFont("Moon")
         self.confirm_button.setText("Confirm")
+        self.confirm_button.setCursor(Qt.PointingHandCursor)
         
         # Add a horizontal layout to the vertical layout
         horizontal_layout = QHBoxLayout()
@@ -186,6 +196,33 @@ class Ui_MainWindow(object):
 
         # Add the label to the horizontal layout
         horizontal_layout.addWidget(self.settings_window_label_3)
+        
+        # setting 3
+        self.label_15 = QLabel(self.settings_window)
+        self.label_15.setObjectName(u"label_15")
+        self.label_15.setGeometry(QRect(10, 130, 300, 30))
+        self.label_15.setFont(font1)
+        self.label_15.setStyleSheet("Background-color: transparent; border: none; color: White;")
+        self.label_15.setText("Toggle Transparent Mode")
+        
+        self.settings_window_box_2 = QWidget(self.settings_window)
+        self.settings_window_box_2.setObjectName(u"settings_window_box_2")
+        self.settings_window_box_2.setGeometry(QRect(10, 120, 500, 450))
+        self.settings_window_box_2.setStyleSheet("background-color: transparent; border: none;")
+        
+        self.toggle_2 = PyToggle()
+        self.settings_window_layout_2 = QVBoxLayout(self.settings_window_box_2)
+        self.settings_window_layout_2.setAlignment(Qt.AlignTop)
+        
+        # Add a horizontal layout to the vertical layout
+        horizontal_layout = QHBoxLayout()
+        self.settings_window_layout_2.addLayout(horizontal_layout)
+
+        # Add the label to the horizontal layout
+        horizontal_layout.addWidget(self.label_15)
+
+        # Add the toggle to the horizontal layout
+        horizontal_layout.addWidget(self.toggle_2)
         
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
@@ -564,30 +601,35 @@ class Ui_MainWindow(object):
         self.button1.setObjectName(u"button1")
         self.button1.setGeometry(QRect(0, 10, 100, 40))
         self.button1.setFont(font1)
+        self.button1.setCursor(QCursor(Qt.PointingHandCursor))
         
         # Button for Backup
         self.button2 = QPushButton(self.selection_box)
         self.button2.setObjectName(u"button2")
         self.button2.setGeometry(QRect(105, 10, 100, 40))
         self.button2.setFont(font1)
+        self.button2.setCursor(QCursor(Qt.PointingHandCursor))
         
         # Button for Q-Ball
         self.button3 = QPushButton(self.selection_box)
         self.button3.setObjectName(u"button3")
         self.button3.setGeometry(QRect(210, 10, 100, 40))
         self.button3.setFont(font1)
+        self.button3.setCursor(QCursor(Qt.PointingHandCursor))
         
         # Button for Free For All
         self.button4 = QPushButton(self.selection_box)
         self.button4.setObjectName(u"button4")
         self.button4.setGeometry(QRect(315, 10, 100, 40))
         self.button4.setFont(font1)
+        self.button4.setCursor(QCursor(Qt.PointingHandCursor))
         
         # Button for Ranked
         self.button5 = QPushButton(self.selection_box)
         self.button5.setObjectName(u"button5")
         self.button5.setGeometry(QRect(420, 10, 100, 40))
         self.button5.setFont(font1)
+        self.button5.setCursor(QCursor(Qt.PointingHandCursor))
         
         # Combo box for the stats
         self.statistic_box = QComboBox(self.selection_box)
@@ -876,8 +918,6 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab_5, "")
         self.settings_button.raise_()
 
-        MainWindow.setCentralWidget(self.centralwidget)
-
         self.retranslateUi(MainWindow)
 
         self.tabWidget.setCurrentIndex(0)
@@ -888,7 +928,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BattleCore Tracker", None))
         self.actiong.setText(QCoreApplication.translate("MainWindow", u"g", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.3", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"BattleCore Tracker - V.4", None))
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Created by: Puppetino", None))
         self.pushButton_new_match.setText(QCoreApplication.translate("MainWindow", u"New Game", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), QCoreApplication.translate("MainWindow", u"Home", None))
@@ -992,8 +1032,6 @@ class Ui_MainWindow(object):
         self.time_box.setItemText(1, QCoreApplication.translate("MainWindow", u" Last Month", None))
         self.time_box.setItemText(2, QCoreApplication.translate("MainWindow", u" Last Week", None))
         
-        # self.dummy_text.setText(QCoreApplication.translate("MainWindow", u"SOON\u2122", None))
-        
         self.settings_window_label.setText(QCoreApplication.translate("MainWindow", u"Settings", None))
         self.settings_window_label_2.setText(QCoreApplication.translate("MainWindow", u"Design 2 for the Analytics Tab", None))
         
@@ -1041,8 +1079,6 @@ class Ui_MainWindow(object):
         self.design_2_tab_4_text.setText(QCoreApplication.translate("MainWindow", u"NONE", None))
         self.design_2_tab_4_kd.setText(QCoreApplication.translate("MainWindow", u"K/D: NONE", None))
         self.design_2_tab_4_usage.setText(QCoreApplication.translate("MainWindow", u"Usage: NONE", None))
-        
-        
 
     # retranslateUi
 
@@ -1421,10 +1457,14 @@ class MainWindow(QMainWindow):
         # Load colors from the settings file and store them in self.colors
         self.color = self.load_colors()
         
+        if self.settings['Settings']['Setting_3']:
+            self.transparent_background()
+        
         # Apply the color
         self.ui.text_input.setText(self.color)
         self.ui.settings_window.setStyleSheet(f"border: 2px solid {self.color}; background-color: #2D2D2D; border-radius: 10px;")
         self.ui.toggle_1._active_color = self.color
+        self.ui.toggle_2._active_color = self.color
         self.ui.text_input.setStyleSheet(f"border: 1px solid {self.color};")
         self.ui.confirm_button.setStyleSheet(f"border: 1px solid {self.color};")
         self.ui.button1.setStyleSheet(f"color: {self.color};")
@@ -1437,9 +1477,11 @@ class MainWindow(QMainWindow):
         
         # Apply settings to the toggle button
         self.ui.toggle_1.setChecked(self.settings['Settings']['Setting_1'])  # Set toggle based on the saved state
+        self.ui.toggle_2.setChecked(self.settings['Settings']['Setting_3'])  # Set toggle based on the saved state
         
         # Connect the toggle button to toggle the setting
-        self.ui.toggle_1.clicked.connect(self.toggle_setting)
+        self.ui.toggle_1.clicked.connect(self.toggle_setting_1)
+        self.ui.toggle_2.clicked.connect(self.toggle_setting_2)
 
         # Connect the tab change signal to the method
         self.ui.tabWidget.currentChanged.connect(self.on_tab_change)
@@ -1473,6 +1515,21 @@ class MainWindow(QMainWindow):
         
         # Load graph for the first time
         self.load_graph()
+        
+    def transparent_background(self):
+        # Apply background image 
+        pixmap = QPixmap("assets/Desktop.png")
+        height = self.height()
+        width = int(pixmap.width() * (height / pixmap.height()))
+        scaled_pixmap = pixmap.scaled(QtCore.QSize(width, height))
+        palette = QPalette()
+        palette.setBrush(QPalette.Window, scaled_pixmap)
+        self.setPalette(palette)
+
+        # Apply opacity effect to central widget
+        opacity_effect = QGraphicsOpacityEffect(self.ui.tabWidget)
+        opacity_effect.setOpacity(0.8)
+        self.ui.centralwidget.setGraphicsEffect(opacity_effect)
         
     def load_settings(self):
         with open(SETTINGS_FILE, "r") as json_file:
@@ -1526,10 +1583,18 @@ class MainWindow(QMainWindow):
         self.settings['Settings']['Setting_2'] = text
         self.save_settings()
         
-    def toggle_setting(self):
+    def toggle_setting_1(self):
         # Toggle the setting value based on the current state of the toggle button
         current_value = self.ui.toggle_1.isChecked()  # Get the current state of the toggle button
         self.settings['Settings']['Setting_1'] = current_value
+
+        # Save the updated settings back to the file
+        self.save_settings()
+        
+    def toggle_setting_2(self):
+        # Toggle the setting value based on the current state of the toggle button
+        current_value = self.ui.toggle_2.isChecked()  # Get the current state of the toggle button
+        self.settings['Settings']['Setting_3'] = current_value
 
         # Save the updated settings back to the file
         self.save_settings()
@@ -1577,8 +1642,8 @@ class MainWindow(QMainWindow):
         
         self.ui.design_2_tab_1_wins_label.setText(f"W: {total_wins}")
         self.ui.design_2_tab_1_losses_label.setText(f"L: {total_losses}")
- 
-    def design_2_ComboBox_Ability_changed(self):
+
+    def design_2_ComboBox_Ability_changed(self):      
         ability = self.ui.design_2_ComboBox_Ability.currentText().strip().lower()
         self.ui.design_2_tab_3_text.setText(ability)
         
@@ -1605,8 +1670,8 @@ class MainWindow(QMainWindow):
         
         self.ui.design_2_tab_3_wins_label.setText(f"W: {total_wins}")
         self.ui.design_2_tab_3_losses_label.setText(f"L: {total_losses}")
-   
-    def design_2_ComboBox_Module_changed(self):  
+
+    def design_2_ComboBox_Module_changed(self):
         module = self.ui.design_2_ComboBox_Module.currentText().strip().lower()
         self.ui.design_2_tab_2_text.setText(module)
         
@@ -1634,7 +1699,7 @@ class MainWindow(QMainWindow):
         self.ui.design_2_tab_2_wins_label.setText(f"W: {total_wins}")
         self.ui.design_2_tab_2_losses_label.setText(f"L: {total_losses}")
 
-    def design_2_ComboBox_Map_changed(self):   
+    def design_2_ComboBox_Map_changed(self):
         map = self.ui.design_2_ComboBox_Map.currentText().strip().lower()
         self.ui.design_2_tab_4_text.setText(map)
         
@@ -2021,7 +2086,7 @@ class MainWindow(QMainWindow):
             "Shroomworld": "Shroomworld_02.jpg",
             "Lost Complex": "Lost_Complex_02.jpg",
             "Twilight Path": "Twilight_Path_02.jpg",
-            "Singularity": "Blette.png"
+            "Singularity": "Singularity_2.jpg"
         }
 
         for item_name, stats in items.items():
@@ -2049,19 +2114,16 @@ class MainWindow(QMainWindow):
                 image_path = ability_images.get(item_name, "default.png")
                 item_image.setPixmap(QPixmap(f"assets/Ability/{image_path}"))
             elif item_type == "Map":
-                item_image.setGeometry(QRect(10, 10, 150, 110))
+                item_image.setGeometry(QRect(10, 10, 180, 110))
                 image_path = map_images.get(item_name, "default.jpg")
                 item_image.setStyleSheet(f"border: 1px solid {self.color};")
-                if item_name == "Singularity":
-                    item_image.setPixmap(QPixmap(f"assets/{image_path}"))
-                else:
-                    item_image.setPixmap(QPixmap(f"assets/Arenas/{image_path}"))
+                item_image.setPixmap(QPixmap(f"assets/Arenas/{image_path}"))
             
             item_image.setScaledContents(True)
 
             # Name Label
             name_label = QLabel(item_box)
-            name_label.setGeometry(QRect(170, 15, 300, 30))
+            name_label.setGeometry(QRect(200, 15, 300, 30))
             name_label.setFont(QFont("Moon", 22))
             name_label.setText(item_name)
             name_label.setStyleSheet("border: none;")
