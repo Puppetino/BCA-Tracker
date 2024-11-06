@@ -1832,7 +1832,7 @@ class MainWindow(QMainWindow):
 
         if self.selected_time_filter == 0:      # Last Year / 12 months
             cutoff = now - timedelta(days=365)
-            x_values = [(now - timedelta(days=365 - i*30)).strftime('%b') for i in range(12)]
+            x_values = [(now - timedelta(days=365) + timedelta(days=30*i)).strftime('%b') for i in range(12)]
         elif self.selected_time_filter == 1:    # Last Month / 30 days
             cutoff = now - timedelta(days=30)
             x_values = [(now - timedelta(days=i)).strftime('%d.%m') for i in range(30)]
