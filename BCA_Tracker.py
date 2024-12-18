@@ -15,6 +15,7 @@ from PySide6.QtWidgets import *
 
 from py_toggle import PyToggle
 from circular_progress import CircularProgress
+from dateutil.relativedelta import relativedelta
 
 FOLDER_DIR = Path("data")
 JSON_FILE = FOLDER_DIR / "game_data.json"
@@ -1759,24 +1760,18 @@ class MainWindow(QMainWindow):
         # Iterate through the filtered data and calculate stats per X-axis label
         for game_id, game_data in filtered_data.items():
             game_datetime = datetime.strptime(game_data['DateTime'], '%Y-%m-%d %H:%M')
-            game_label = game_datetime.strftime('%b') if self.selected_time_filter == 0 else game_datetime.strftime('%d.%m')
+            game_label = game_datetime.strftime('%b %Y') if self.selected_time_filter == 0 else game_datetime.strftime('%d.%m.%Y')
 
             if game_label in x_labels:
                 index = x_labels.index(game_label)
-                
+
                 if self.selected_statistic == 0:  # K/D
-                    total_kills = 0
-                    total_deaths = 0
-                    for game_id, game_data in filtered_data.items():
-                        game_datetime = datetime.strptime(game_data['DateTime'], '%Y-%m-%d %H:%M')
-                        game_label = game_datetime.strftime('%b') if self.selected_time_filter == 0 else game_datetime.strftime('%d.%m')
-                        if game_label == x_labels[index]:
-                            total_kills += game_data['Kills']
-                            total_deaths += game_data['Deaths']
+                    total_kills = game_data['Kills']
+                    total_deaths = game_data['Deaths']
                     if total_deaths > 0:
-                        y_values[index] = total_kills / total_deaths
+                        y_values[index] += total_kills / total_deaths
                     else:
-                        y_values[index] = 0
+                        y_values[index] += 0  # No division by zero
                 elif self.selected_statistic == 1:  # Kills
                     y_values[index] += game_data['Kills']
                 elif self.selected_statistic == 2:  # Deaths
@@ -1784,16 +1779,17 @@ class MainWindow(QMainWindow):
                 elif self.selected_statistic == 3:  # Matches
                     y_values[index] += 1
                 elif self.selected_statistic == 4:  # Wins
-                    y_values[index] += 1 if game_data['Win/Loss'].strip().lower() == 'win' else 0
+                    if game_data['Win/Loss'].strip().lower() == 'win':
+                        y_values[index] += 1
                 elif self.selected_statistic == 5:  # Losses
-                    y_values[index] += 1 if game_data['Win/Loss'].strip().lower() == 'loss' else 0
+                    if game_data['Win/Loss'].strip().lower() == 'loss':
+                        y_values[index] += 1
                 elif self.selected_statistic == 6:  # Win%
                     games_in_label = [
                         game for game in filtered_data.values()
-                        if datetime.strptime(game['DateTime'], '%Y-%m-%d %H:%M').strftime('%b' if self.selected_time_filter == 0 else '%d.%m') == game_label
+                        if datetime.strptime(game['DateTime'], '%Y-%m-%d %H:%M').strftime('%b %Y' if self.selected_time_filter == 0 else '%d.%m.%Y') == game_label
                     ]
-
-                    if games_in_label:  # If there are games in this period
+                    if games_in_label:
                         wins_in_label = sum(1 for game in games_in_label if game['Win/Loss'].strip().lower() == 'win')
                         total_games_in_label = len(games_in_label)
                         win_percentage = (wins_in_label / total_games_in_label) * 100
@@ -1830,13 +1826,24 @@ class MainWindow(QMainWindow):
     def filter_data_by_time(self, games):
         now = datetime.now()
 
-        if self.selected_time_filter == 0:      # Last Year / 12 months
-            cutoff = now - timedelta(days=365)
-            x_values = [(now - timedelta(days=365) + timedelta(days=30*i)).strftime('%b') for i in range(12)]
-        elif self.selected_time_filter == 1:    # Last Month / 30 days
+        # Ensure cutoff is always initialized
+        if self.selected_time_filter == 0:  # Last Year / 12 months
+            # Start from January 2024 (or the start of the current year)
+            start_of_year = datetime(now.year, 1, 1)
+            cutoff = start_of_year  # Use the start of the year as cutoff for 12 months view
+            x_values = []
+            
+            for i in range(12):
+                # Add months correctly from January 2024, going forward
+                month = (start_of_year + relativedelta(months=i)).strftime('%b %Y')
+                x_values.append(month)
+            
+            # No need to reverse here, months are now in January -> December order
+        
+        elif self.selected_time_filter == 1:  # Last Month / 30 days
             cutoff = now - timedelta(days=30)
             x_values = [(now - timedelta(days=i)).strftime('%d.%m') for i in range(30)]
-        elif self.selected_time_filter == 2:    # Last Week / 7 days
+        elif self.selected_time_filter == 2:  # Last Week / 7 days
             cutoff = now - timedelta(days=7)
             x_values = [(now - timedelta(days=i)).strftime('%d.%m') for i in range(7)]
 
@@ -1852,6 +1859,7 @@ class MainWindow(QMainWindow):
     def load_graph(self):
         if not self.color:
             self.color = 'purple'
+
         # Clear the existing graph before plotting the new one
         self.ui.graph.clear()
 
@@ -1870,28 +1878,32 @@ class MainWindow(QMainWindow):
         # Get the y values for the graph based on the filtered data
         y_values = self.get_statistic_values(filtered_data, x_labels)
 
-        # Reverse both the X-axis labels and the Y-values to match the inverted X-axis
-        x_labels.reverse()
-        y_values.reverse()
+        # Reverse only for daily/weekly filters
+        if self.selected_time_filter in [1, 2]:
+            x_labels.reverse()
+            y_values.reverse()
 
-        # Plot the data on the graph (fill gaps where no data is available)
-        pen = pg.mkPen(f"{self.color}")
+        # Fix edge rendering: Adjust the X-axis range to ensure all points are visible
         x_indices = list(range(len(x_labels)))
+        pen = pg.mkPen(f"{self.color}")
+
+        # Expand the graph limits slightly to render edge points
         self.ui.graph.plot(x_indices, y_values, pen=pen, symbol='x')
+        self.ui.graph.setLimits(xMin=-0.5, xMax=len(x_labels) - 0.5)
 
         # Set the X-axis with custom labels (e.g., months or dates)
         x_axis = self.ui.graph.getAxis('bottom')
         x_axis.setTicks([[(i, label) for i, label in enumerate(x_labels)]])
 
-        # Set fixed limits and range for the graph
+        # Set fixed limits and range for the Y-axis
         y_min, y_max = min(y_values), max(y_values)
-        self.ui.graph.setLimits(xMin=0, xMax=len(x_labels) - 1, yMin=0, yMax=y_max)
+        self.ui.graph.setLimits(yMin=0, yMax=y_max + (0.1 * y_max))  # Add 10% padding for better visibility
+
+        # Set the view range to include the full graph
+        self.ui.graph.setRange(xRange=(-0.5, len(x_labels) - 0.5), yRange=(0, y_max + (0.1 * y_max)))
 
         # Disable mouse dragging or zooming on the graph
         self.ui.graph.setMouseEnabled(x=False, y=False)
-
-        # Set the fixed range for the view
-        self.ui.graph.setRange(xRange=(0, len(x_labels) - 1), yRange=(0, y_max))
 
     def on_tab_change(self, index):
         if index == 3:
@@ -2274,41 +2286,51 @@ class MainWindow(QMainWindow):
 
         # Loop through each game and accumulate stats
         for game_id, game_data in games.items():
-            total_kills += game_data["Kills"]
-            total_deaths += game_data["Deaths"]
-            total_assists += game_data["Assists"]
+            # Sanitize input data
+            sanitized_data = {
+                key: value.strip() if isinstance(value, str) else value
+                for key, value in game_data.items()
+            }
+
+            # Skip invalid entries
+            if sanitized_data["Map"] == "None" or sanitized_data["Mode"] == "None":
+                continue
+
+            total_kills += sanitized_data["Kills"]
+            total_deaths += sanitized_data["Deaths"]
+            total_assists += sanitized_data["Assists"]
             total_games += 1
 
             # Count wins and losses
-            if game_data["Win/Loss"].strip().lower() == "win":
+            if sanitized_data["Win/Loss"].lower() == "win":
                 total_wins += 1
-                map_wins.setdefault(game_data["Map"].strip(), {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
-                mode_wins.setdefault(game_data["Mode"].strip(), {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
-                map_wins[game_data["Map"].strip()]['Wins'] += 1
-                mode_wins[game_data["Mode"].strip()]['Wins'] += 1
-            elif game_data["Win/Loss"].strip().lower() == "loss":
+                map_wins.setdefault(sanitized_data["Map"], {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
+                mode_wins.setdefault(sanitized_data["Mode"], {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
+                map_wins[sanitized_data["Map"]]['Wins'] += 1
+                mode_wins[sanitized_data["Mode"]]['Wins'] += 1
+            elif sanitized_data["Win/Loss"].lower() == "loss":
                 total_losses += 1
-                map_wins.setdefault(game_data["Map"].strip(), {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
-                mode_wins.setdefault(game_data["Mode"].strip(), {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
-                map_wins[game_data["Map"].strip()]['Losses'] += 1
-                mode_wins[game_data["Mode"].strip()]['Losses'] += 1
+                map_wins.setdefault(sanitized_data["Map"], {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
+                mode_wins.setdefault(sanitized_data["Mode"], {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
+                map_wins[sanitized_data["Map"]]['Losses'] += 1
+                mode_wins[sanitized_data["Mode"]]['Losses'] += 1
 
             # Update kills, deaths for each map and track K/D for weapons
-            map_wins[game_data["Map"].strip()]['Kills'] += game_data["Kills"]
-            map_wins[game_data["Map"].strip()]['Deaths'] += game_data["Deaths"]
-            map_wins[game_data["Map"].strip()]['Total_Uses'] += 1
-            mode_wins[game_data["Mode"].strip()]['Total_Uses'] += 1
+            map_wins[sanitized_data["Map"]]['Kills'] += sanitized_data["Kills"]
+            map_wins[sanitized_data["Map"]]['Deaths'] += sanitized_data["Deaths"]
+            map_wins[sanitized_data["Map"]]['Total_Uses'] += 1
+            mode_wins[sanitized_data["Mode"]]['Total_Uses'] += 1
 
             # Count abilities, weapons, and modules usage
-            ability_counter[game_data["Ability"].strip()] += 1
-            weapon_counter[game_data["Weapon"].strip()] += 1
-            module_counter[game_data["Module"].strip()] += 1
+            ability_counter[sanitized_data["Ability"]] += 1
+            weapon_counter[sanitized_data["Weapon"]] += 1
+            module_counter[sanitized_data["Module"]] += 1
 
             # Track K/D ratio for weapons
-            weapon_kd_stats.setdefault(game_data["Weapon"].strip(), {'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
-            weapon_kd_stats[game_data["Weapon"].strip()]['Kills'] += game_data["Kills"]
-            weapon_kd_stats[game_data["Weapon"].strip()]['Deaths'] += game_data["Deaths"]
-            weapon_kd_stats[game_data["Weapon"].strip()]['Total_Uses'] += 1
+            weapon_kd_stats.setdefault(sanitized_data["Weapon"], {'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
+            weapon_kd_stats[sanitized_data["Weapon"]]['Kills'] += sanitized_data["Kills"]
+            weapon_kd_stats[sanitized_data["Weapon"]]['Deaths'] += sanitized_data["Deaths"]
+            weapon_kd_stats[sanitized_data["Weapon"]]['Total_Uses'] += 1
 
         # Avoid division by zero
         kd_ratio = round(total_kills / max(1, total_deaths), 2)
@@ -2320,16 +2342,25 @@ class MainWindow(QMainWindow):
         most_used_module = module_counter.most_common(1)[0][0] if module_counter else "None"
 
         # Calculate best map using composite score (K/D, win rate, usage)
-        max_map_uses = max(map_wins[m]['Total_Uses'] for m in map_wins)
-        best_map = self.calculate_best_map(map_wins, max_map_uses)
+        if map_wins:
+            max_map_uses = max(map_wins[m]['Total_Uses'] for m in map_wins)
+            best_map = self.calculate_best_map(map_wins, max_map_uses)
+        else:
+            best_map = "None"
 
         # Calculate best mode using win rate and usage
-        max_mode_uses = max(mode_wins[m]['Total_Uses'] for m in mode_wins)
-        best_mode = self.calculate_best_mode(mode_wins, max_mode_uses)
+        if mode_wins:
+            max_mode_uses = max(mode_wins[m]['Total_Uses'] for m in mode_wins)
+            best_mode = self.calculate_best_mode(mode_wins, max_mode_uses)
+        else:
+            best_mode = "None"
 
         # Calculate best weapon using K/D ratio and usage
-        max_weapon_uses = max(weapon_kd_stats[w]['Total_Uses'] for w in weapon_kd_stats)
-        best_weapon = self.calculate_best_weapon(weapon_kd_stats, max_weapon_uses)
+        if weapon_kd_stats:
+            max_weapon_uses = max(weapon_kd_stats[w]['Total_Uses'] for w in weapon_kd_stats)
+            best_weapon = self.calculate_best_weapon(weapon_kd_stats, max_weapon_uses)
+        else:
+            best_weapon = "None"
 
         # Manually position and size the labels and progress bar
         lifetime_kd_label = QLabel(f"K/D Ratio: {kd_ratio}", season_group_box)
@@ -2337,7 +2368,7 @@ class MainWindow(QMainWindow):
 
         lifetime_win_ratio_label = QLabel(f"W/L Ratio: {win_ratio}%", season_group_box)
         lifetime_win_ratio_label.setGeometry(QRect(240, 20, 230, 31))
-        
+
         avg_kills_label = QLabel(f"Avg. Kills: {round(total_kills / max(1, total_games), 2)}", season_group_box)
         avg_kills_label.setGeometry(QRect(10, 50, 261, 31))
 
@@ -2385,7 +2416,7 @@ class MainWindow(QMainWindow):
         best_weapon_label = QLabel(f"Best Weapon: {best_weapon}", season_group_box)
         best_weapon_label.setGeometry(QRect(440, 230, 300, 31))
 
-        return season_group_box  # Ensure the group box is returned
+        return season_group_box
 
     # Shared functions for calculating the best map, mode, and weapon
     def calculate_best_map(self, map_wins, max_map_uses):
@@ -2448,6 +2479,7 @@ class MainWindow(QMainWindow):
         map_stats = {}
         mode_stats = {}
         weapon_kd_stats = {}
+        skipped_entries = 0  # Counter for skipped invalid entries
 
         # Load the data from the JSON file
         if not BASE_DIR.exists():
@@ -2459,42 +2491,53 @@ class MainWindow(QMainWindow):
         # Loop through each season and each game to accumulate stats
         for season, games in data.items():
             for game_id, game_data in games.items():
+                # Sanitize input data
+                sanitized_data = {
+                    key: value.strip() if isinstance(value, str) else value
+                    for key, value in game_data.items()
+                }
+
+                # Skip invalid or "None" entries
+                if sanitized_data["Map"] == "None" or sanitized_data["Mode"] == "None":
+                    skipped_entries += 1
+                    continue  # Skip this game entry
+
                 # Aggregate kills, deaths, assists, and matches
-                self.total_kills += game_data["Kills"]
-                self.total_deaths += game_data["Deaths"]
-                self.total_assists += game_data["Assists"]
+                self.total_kills += sanitized_data["Kills"]
+                self.total_deaths += sanitized_data["Deaths"]
+                self.total_assists += sanitized_data["Assists"]
                 self.total_games += 1
 
                 # Win/loss counters
-                if game_data["Win/Loss"].strip().lower() == "win":
+                if sanitized_data["Win/Loss"].lower() == "win":
                     self.total_wins += 1
-                    map_stats.setdefault(game_data["Map"].strip(), {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
-                    mode_stats.setdefault(game_data["Mode"].strip(), {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
-                    map_stats[game_data["Map"].strip()]['Wins'] += 1
-                    mode_stats[game_data["Mode"].strip()]['Wins'] += 1
-                elif game_data["Win/Loss"].strip().lower() == "loss":
+                    map_stats.setdefault(sanitized_data["Map"], {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
+                    mode_stats.setdefault(sanitized_data["Mode"], {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
+                    map_stats[sanitized_data["Map"]]['Wins'] += 1
+                    mode_stats[sanitized_data["Mode"]]['Wins'] += 1
+                elif sanitized_data["Win/Loss"].lower() == "loss":
                     self.total_losses += 1
-                    map_stats.setdefault(game_data["Map"].strip(), {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
-                    mode_stats.setdefault(game_data["Mode"].strip(), {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
-                    map_stats[game_data["Map"].strip()]['Losses'] += 1
-                    mode_stats[game_data["Mode"].strip()]['Losses'] += 1
+                    map_stats.setdefault(sanitized_data["Map"], {'Wins': 0, 'Losses': 0, 'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
+                    mode_stats.setdefault(sanitized_data["Mode"], {'Wins': 0, 'Losses': 0, 'Total_Uses': 0})
+                    map_stats[sanitized_data["Map"]]['Losses'] += 1
+                    mode_stats[sanitized_data["Mode"]]['Losses'] += 1
 
                 # Update kills, deaths for each map
-                map_stats[game_data["Map"].strip()]['Kills'] += game_data["Kills"]
-                map_stats[game_data["Map"].strip()]['Deaths'] += game_data["Deaths"]
-                map_stats[game_data["Map"].strip()]['Total_Uses'] += 1
-                mode_stats[game_data["Mode"].strip()]['Total_Uses'] += 1
+                map_stats[sanitized_data["Map"]]['Kills'] += sanitized_data["Kills"]
+                map_stats[sanitized_data["Map"]]['Deaths'] += sanitized_data["Deaths"]
+                map_stats[sanitized_data["Map"]]['Total_Uses'] += 1
+                mode_stats[sanitized_data["Mode"]]['Total_Uses'] += 1
 
                 # Count abilities, weapons, and modules usage
-                ability_counter[game_data["Ability"].strip()] += 1
-                weapon_counter[game_data["Weapon"].strip()] += 1
-                module_counter[game_data["Module"].strip()] += 1
+                ability_counter[sanitized_data["Ability"]] += 1
+                weapon_counter[sanitized_data["Weapon"]] += 1
+                module_counter[sanitized_data["Module"]] += 1
 
                 # Track K/D ratio for weapons
-                weapon_kd_stats.setdefault(game_data["Weapon"].strip(), {'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
-                weapon_kd_stats[game_data["Weapon"].strip()]['Kills'] += game_data["Kills"]
-                weapon_kd_stats[game_data["Weapon"].strip()]['Deaths'] += game_data["Deaths"]
-                weapon_kd_stats[game_data["Weapon"].strip()]['Total_Uses'] += 1
+                weapon_kd_stats.setdefault(sanitized_data["Weapon"], {'Kills': 0, 'Deaths': 0, 'Total_Uses': 0})
+                weapon_kd_stats[sanitized_data["Weapon"]]['Kills'] += sanitized_data["Kills"]
+                weapon_kd_stats[sanitized_data["Weapon"]]['Deaths'] += sanitized_data["Deaths"]
+                weapon_kd_stats[sanitized_data["Weapon"]]['Total_Uses'] += 1
 
         # Calculate overall K/D and win ratios
         self.kd_ratio = round(self.total_kills / max(1, self.total_deaths), 2)
@@ -2518,32 +2561,44 @@ class MainWindow(QMainWindow):
             return total_uses / max_uses if max_uses != 0 else 0
 
         # Calculate best map using composite score (K/D, win rate, usage)
-        max_map_uses = max(map_stats[m]['Total_Uses'] for m in map_stats)
-        def calculate_map_composite_score(map_stat):
-            kd_ratio = calculate_kd(map_stat['Kills'], map_stat['Deaths'])
-            win_rate = calculate_win_rate(map_stat['Wins'], map_stat['Total_Uses'])
-            usage_score = normalize_usage(map_stat['Total_Uses'], max_map_uses)
-            weight_kd = 0.3
-            weight_win_rate = 0.4
-            weight_usage = 0.3
-            return (weight_kd * kd_ratio) + (weight_win_rate * win_rate) + (weight_usage * usage_score)
-        self.best_map = max(map_stats, key=lambda m: calculate_map_composite_score(map_stats[m]))
+        if map_stats:
+            max_map_uses = max(map_stats[m]['Total_Uses'] for m in map_stats)
+            def calculate_map_composite_score(map_stat):
+                kd_ratio = calculate_kd(map_stat['Kills'], map_stat['Deaths'])
+                win_rate = calculate_win_rate(map_stat['Wins'], map_stat['Total_Uses'])
+                usage_score = normalize_usage(map_stat['Total_Uses'], max_map_uses)
+                weight_kd = 0.3
+                weight_win_rate = 0.4
+                weight_usage = 0.3
+                return (weight_kd * kd_ratio) + (weight_win_rate * win_rate) + (weight_usage * usage_score)
+            self.best_map = max(map_stats, key=lambda m: calculate_map_composite_score(map_stats[m]))
+        else:
+            self.best_map = "None"
 
         # Calculate best mode using win rate and usage
-        max_mode_uses = max(mode_stats[m]['Total_Uses'] for m in mode_stats)
-        def calculate_mode_composite_score(mode_stat):
-            win_rate = calculate_win_rate(mode_stat['Wins'], mode_stat['Total_Uses'])
-            usage_score = normalize_usage(mode_stat['Total_Uses'], max_mode_uses)
-            return (0.6 * win_rate) + (0.4 * usage_score)
-        self.best_mode = max(mode_stats, key=lambda m: calculate_mode_composite_score(mode_stats[m]))
+        if mode_stats:
+            max_mode_uses = max(mode_stats[m]['Total_Uses'] for m in mode_stats)
+            def calculate_mode_composite_score(mode_stat):
+                win_rate = calculate_win_rate(mode_stat['Wins'], mode_stat['Total_Uses'])
+                usage_score = normalize_usage(mode_stat['Total_Uses'], max_mode_uses)
+                return (0.6 * win_rate) + (0.4 * usage_score)
+            self.best_mode = max(mode_stats, key=lambda m: calculate_mode_composite_score(mode_stats[m]))
+        else:
+            self.best_mode = "None"
 
         # Calculate best weapon using K/D ratio and usage
-        max_weapon_uses = max(weapon_kd_stats[w]['Total_Uses'] for w in weapon_kd_stats)
-        def calculate_weapon_composite_score(weapon_stat):
-            kd_ratio = calculate_kd(weapon_stat['Kills'], weapon_stat['Deaths'])
-            usage_score = normalize_usage(weapon_stat['Total_Uses'], max_weapon_uses)
-            return (0.7 * kd_ratio) + (0.3 * usage_score)
-        self.best_weapon = max(weapon_kd_stats, key=lambda w: calculate_weapon_composite_score(weapon_kd_stats[w]))
+        if weapon_kd_stats:
+            max_weapon_uses = max(weapon_kd_stats[w]['Total_Uses'] for w in weapon_kd_stats)
+            def calculate_weapon_composite_score(weapon_stat):
+                kd_ratio = calculate_kd(weapon_stat['Kills'], weapon_stat['Deaths'])
+                usage_score = normalize_usage(weapon_stat['Total_Uses'], max_weapon_uses)
+                return (0.7 * kd_ratio) + (0.3 * usage_score)
+            self.best_weapon = max(weapon_kd_stats, key=lambda w: calculate_weapon_composite_score(weapon_kd_stats[w]))
+        else:
+            self.best_weapon = "None"
+
+        # Debug output for skipped entries
+        print(f"Skipped {skipped_entries} invalid game entries.")
 
     def reset_fields(self):
             self.ui.spinBox_kills.setValue(0)
