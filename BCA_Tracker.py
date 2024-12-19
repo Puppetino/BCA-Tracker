@@ -1755,45 +1755,58 @@ class MainWindow(QMainWindow):
         }
 
     def get_statistic_values(self, filtered_data, x_labels):
-        y_values = [0] * len(x_labels)  # Initialize Y-values as zeros for each X-axis label
+        # Initialize Y-values as zeros for each X-axis label
+        y_values = [0] * len(x_labels)
 
-        # Iterate through the filtered data and calculate stats per X-axis label
-        for game_id, game_data in filtered_data.items():
+        # Temporary storage for complex calculations (e.g., Win%)
+        wins = [0] * len(x_labels)
+        total_games = [0] * len(x_labels)
+        total_kills = [0] * len(x_labels)
+        total_deaths = [0] * len(x_labels)
+
+        # Map labels to indices for efficient lookup
+        label_to_index = {label: idx for idx, label in enumerate(x_labels)}
+
+        # Iterate through filtered data and assign values based on selected statistic
+        for game_data in filtered_data.values():
+            # Determine the label for the game
             game_datetime = datetime.strptime(game_data['DateTime'], '%Y-%m-%d %H:%M')
-            game_label = game_datetime.strftime('%b %Y') if self.selected_time_filter == 0 else game_datetime.strftime('%d.%m.%Y')
+            game_label = game_datetime.strftime('%b %Y' if self.selected_time_filter == 0 else '%d.%m')
 
-            if game_label in x_labels:
-                index = x_labels.index(game_label)
+            if game_label in label_to_index:
+                index = label_to_index[game_label]  # X-axis index for this label
 
-                if self.selected_statistic == 0:  # K/D
-                    total_kills = game_data['Kills']
-                    total_deaths = game_data['Deaths']
-                    if total_deaths > 0:
-                        y_values[index] += total_kills / total_deaths
-                    else:
-                        y_values[index] += 0  # No division by zero
-                elif self.selected_statistic == 1:  # Kills
+                if self.selected_statistic == 0:  # K/D Ratio
+                    total_kills[index] += game_data['Kills']
+                    total_deaths[index] += game_data['Deaths']
+
+                elif self.selected_statistic == 1:  # Total Kills
                     y_values[index] += game_data['Kills']
-                elif self.selected_statistic == 2:  # Deaths
+
+                elif self.selected_statistic == 2:  # Total Deaths
                     y_values[index] += game_data['Deaths']
-                elif self.selected_statistic == 3:  # Matches
+
+                elif self.selected_statistic == 3:  # Total Matches
                     y_values[index] += 1
-                elif self.selected_statistic == 4:  # Wins
+
+                elif self.selected_statistic == 4:  # Total Wins
                     if game_data['Win/Loss'].strip().lower() == 'win':
                         y_values[index] += 1
-                elif self.selected_statistic == 5:  # Losses
+
+                elif self.selected_statistic == 5:  # Total Losses
                     if game_data['Win/Loss'].strip().lower() == 'loss':
                         y_values[index] += 1
-                elif self.selected_statistic == 6:  # Win%
-                    games_in_label = [
-                        game for game in filtered_data.values()
-                        if datetime.strptime(game['DateTime'], '%Y-%m-%d %H:%M').strftime('%b %Y' if self.selected_time_filter == 0 else '%d.%m.%Y') == game_label
-                    ]
-                    if games_in_label:
-                        wins_in_label = sum(1 for game in games_in_label if game['Win/Loss'].strip().lower() == 'win')
-                        total_games_in_label = len(games_in_label)
-                        win_percentage = (wins_in_label / total_games_in_label) * 100
-                        y_values[index] = win_percentage  # Set the Win% for this specific period (label)
+
+                elif self.selected_statistic == 6:  # Win Percentage
+                    total_games[index] += 1
+                    if game_data['Win/Loss'].strip().lower() == 'win':
+                        wins[index] += 1
+
+        # Finalize K/D Ratio and Win% calculations
+        if self.selected_statistic == 0:  # K/D Ratio
+            y_values = [total_kills[i] / max(1, total_deaths[i]) for i in range(len(x_labels))]
+        elif self.selected_statistic == 6:  # Win Percentage
+            y_values = [(wins[i] / total_games[i] * 100) if total_games[i] > 0 else 0 for i in range(len(x_labels))]
 
         return y_values
 
@@ -1826,32 +1839,23 @@ class MainWindow(QMainWindow):
     def filter_data_by_time(self, games):
         now = datetime.now()
 
-        # Ensure cutoff is always initialized
         if self.selected_time_filter == 0:  # Last Year / 12 months
-            # Start from January 2024 (or the start of the current year)
-            start_of_year = datetime(now.year, 1, 1)
-            cutoff = start_of_year  # Use the start of the year as cutoff for 12 months view
-            x_values = []
-            
-            for i in range(12):
-                # Add months correctly from January 2024, going forward
-                month = (start_of_year + relativedelta(months=i)).strftime('%b %Y')
-                x_values.append(month)
-            
-            # No need to reverse here, months are now in January -> December order
-        
+            cutoff = now - timedelta(days=365)
+            x_values = [(cutoff + relativedelta(months=i)).strftime('%b %Y') for i in range(12)]
         elif self.selected_time_filter == 1:  # Last Month / 30 days
             cutoff = now - timedelta(days=30)
-            x_values = [(now - timedelta(days=i)).strftime('%d.%m') for i in range(30)]
+            x_values = [(cutoff + timedelta(days=i)).strftime('%d.%m') for i in range(30)]
         elif self.selected_time_filter == 2:  # Last Week / 7 days
             cutoff = now - timedelta(days=7)
-            x_values = [(now - timedelta(days=i)).strftime('%d.%m') for i in range(7)]
+            x_values = [(cutoff + timedelta(days=i)).strftime('%d.%m') for i in range(7)]
+        else:
+            raise ValueError("Invalid time filter selected.")
 
         # Filter games by comparing the DateTime field to the cutoff
         filtered_games = {}
         for game_id, game_data in games.items():
             game_datetime = datetime.strptime(game_data['DateTime'], '%Y-%m-%d %H:%M')
-            if game_datetime > cutoff:
+            if game_datetime >= cutoff:
                 filtered_games[game_id] = game_data
 
         return filtered_games, x_values
@@ -1878,17 +1882,17 @@ class MainWindow(QMainWindow):
         # Get the y values for the graph based on the filtered data
         y_values = self.get_statistic_values(filtered_data, x_labels)
 
-        # Reverse only for daily/weekly filters
-        if self.selected_time_filter in [1, 2]:
-            x_labels.reverse()
-            y_values.reverse()
+        # Ensure alignment of X and Y values
+        if len(x_labels) != len(y_values):
+            print("Error: X and Y values are not aligned.")
+            return
 
-        # Fix edge rendering: Adjust the X-axis range to ensure all points are visible
+        # Plot the data on the graph
         x_indices = list(range(len(x_labels)))
         pen = pg.mkPen(f"{self.color}")
+        self.ui.graph.plot(x_indices, y_values, pen=pen, symbol='x')
 
         # Expand the graph limits slightly to render edge points
-        self.ui.graph.plot(x_indices, y_values, pen=pen, symbol='x')
         self.ui.graph.setLimits(xMin=-0.5, xMax=len(x_labels) - 0.5)
 
         # Set the X-axis with custom labels (e.g., months or dates)
